@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// ListAllFiles un-globs input as well as recursivly list all
+// ListAllFiles un-globs input as well as recursively list all
 // files in the given input
 func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry
@@ -39,15 +39,13 @@ func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, 
 		}
 
 		if stat.IsDir() {
-			dirFiles, err := ListDirFiles(file)
+			dirFiles, err := ListDirFiles(file, filterRegex)
 			if err != nil {
 				return nil, fmt.Errorf("could not list files in dir: %s, err: %w", file, err)
 			}
 			allFiles = append(allFiles, dirFiles...)
-		} else {
-			if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file)) {
-				allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
-			}
+		} else if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file)) {
+			allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
 		}
 	}
 
@@ -56,30 +54,23 @@ func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, 
 
 // ListFiles lists every file in a directory (recursive) and
 // optionally ignores files given in skipMap
-func ListDirFiles(root string) ([]os.DirEntry, error) {
+func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry
 	var files, err = os.ReadDir(root)
 	if err != nil {
 		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
 	}
 
-	suffixRegex, err := regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
-	if err != nil {
-		return nil, fmt.Errorf("error compiling regex, error: %s", err.Error())
-	}
-
 	for _, file := range files {
 		var fullPath = filepath.Join(root, file.Name())
 		if file.IsDir() {
-			recursiveImages, err := ListDirFiles(fullPath)
+			recursiveImages, err := ListDirFiles(fullPath, filterRegex)
 			if err != nil {
 				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
 			}
 			allFiles = append(allFiles, recursiveImages...)
-		} else {
-			if suffixRegex.MatchString(strings.ToLower(file.Name())) {
-				allFiles = append(allFiles, file)
-			}
+		} else if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file.Name())) {
+			allFiles = append(allFiles, file)
 		}
 	}
 	return allFiles, nil
