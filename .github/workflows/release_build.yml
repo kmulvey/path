@@ -1,0 +1,38 @@
+name: path
+
+on: push
+
+jobs:
+  build:
+    name: path build
+    strategy:
+      matrix:
+        go-version: [1.19.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Check out code into the Go module directory
+        uses: actions/checkout@v3
+
+      - name: Set up Go 
+        uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+        id: go
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+          args: --timeout=5m
+
+      - name: Build & Test
+        run: |
+          go mod tidy
+          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile=coverage.out ./...
+          go build -v -ldflags="-s -w" ./...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3  
+        with:
+          verbose: true # optional (default = false)
