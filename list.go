@@ -13,12 +13,8 @@ import (
 
 // ListAllFiles un-globs input as well as recursivly list all
 // files in the given input
-func ListAllFiles(inputPath string) ([]os.DirEntry, error) {
+func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry
-	var suffixRegex, err = regexp.Compile(".*.jpg$|.*.jpeg$|.*.png$|.*.webp$")
-	if err != nil {
-		return nil, fmt.Errorf("error compiling regex, error: %s", err.Error())
-	}
 
 	// expand ~ paths
 	if strings.Contains(inputPath, "~") {
@@ -49,7 +45,7 @@ func ListAllFiles(inputPath string) ([]os.DirEntry, error) {
 			}
 			allFiles = append(allFiles, dirFiles...)
 		} else {
-			if suffixRegex.MatchString(strings.ToLower(file)) {
+			if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file)) {
 				allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
 			}
 		}
@@ -89,9 +85,9 @@ func ListDirFiles(root string) ([]os.DirEntry, error) {
 	return allFiles, nil
 }
 
-// FileInfoToString converts a slice of fs.FileInfo to a slice
+// DirEntryToString converts a slice of fs.FileInfo to a slice
 // of just the files names joined with a given root directory
-func FileInfoToString(files []os.DirEntry) ([]string, error) {
+func DirEntryToString(files []os.DirEntry) ([]string, error) {
 	var fileNames = make([]string, len(files))
 	for i, file := range files {
 		info, err := file.Info()
@@ -103,9 +99,9 @@ func FileInfoToString(files []os.DirEntry) ([]string, error) {
 	return fileNames, nil
 }
 
-// FilterFilesByDate removes files from the slice if they were modified
+// FilterFilesSinceDate removes files from the slice if they were modified
 // before the modifiedSince
-func FilterFilesByDate(files []os.DirEntry, modifiedSince time.Time) ([]os.DirEntry, error) {
+func FilterFilesSinceDate(files []os.DirEntry, modifiedSince time.Time) ([]os.DirEntry, error) {
 	for i := len(files) - 1; i >= 0; i-- {
 		info, err := files[i].Info()
 		if err != nil {
@@ -119,7 +115,7 @@ func FilterFilesByDate(files []os.DirEntry, modifiedSince time.Time) ([]os.DirEn
 }
 
 // FilterFilesBySkipMap removes files from the map that are also in the skipMap
-func FilterFilesBySkipMap(files []os.DirEntry, skipMap map[string]bool) ([]os.DirEntry, error) {
+func FilterFilesBySkipMap(files []os.DirEntry, skipMap map[string]struct{}) ([]os.DirEntry, error) {
 	for i := len(files) - 1; i >= 0; i-- {
 		info, err := files[i].Info()
 		if err != nil {
@@ -130,50 +126,6 @@ func FilterFilesBySkipMap(files []os.DirEntry, skipMap map[string]bool) ([]os.Di
 		}
 	}
 	return files, nil
-}
-
-// FilterPNG filters a slice of files to return only pngs
-func FilerPNG(files []string) []string {
-	var filtered []string
-	for _, file := range files {
-		if strings.HasSuffix(strings.ToLower(file), ".png") {
-			filtered = append(filtered, file)
-		}
-	}
-	return filtered
-}
-
-// FilterWEBP filters a slice of files to return only webps
-func FilerWEBP(files []string) []string {
-	var filtered []string
-	for _, file := range files {
-		if strings.HasSuffix(strings.ToLower(file), ".webp") {
-			filtered = append(filtered, file)
-		}
-	}
-	return filtered
-}
-
-// FilterJPG filters a slice of files to return only jpgs
-func FilerJPG(files []string) []string {
-	var filtered []string
-	for _, file := range files {
-		if strings.HasSuffix(strings.ToLower(file), ".jpg") {
-			filtered = append(filtered, file)
-		}
-	}
-	return filtered
-}
-
-// FilterJPEG filters a slice of files to return only jpegs
-func FilerJPEG(files []string) []string {
-	var filtered []string
-	for _, file := range files {
-		if strings.HasSuffix(strings.ToLower(file), ".jpeg") {
-			filtered = append(filtered, file)
-		}
-	}
-	return filtered
 }
 
 // EscapeFilePath escapes spaces in the filepath used for an exec() call
