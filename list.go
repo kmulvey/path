@@ -11,9 +11,13 @@ import (
 	"time"
 )
 
-// ListAllFiles un-globs input as well as recursively list all
+func ListFiles(inputPath string) ([]os.DirEntry, error) {
+	return ListFilesWithFilter(inputPath, nil)
+}
+
+// ListFilesWithFilter un-globs input as well as recursively list all
 // files in the given input
-func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
+func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry
 
 	// expand ~ paths
@@ -44,8 +48,14 @@ func ListAllFiles(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, 
 				return nil, fmt.Errorf("could not list files in dir: %s, err: %w", file, err)
 			}
 			allFiles = append(allFiles, dirFiles...)
-		} else if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file)) {
-			allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
+		} else {
+			if filterRegex != nil {
+				if filterRegex.MatchString(strings.ToLower(stat.Name())) {
+					allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
+				}
+			} else {
+				allFiles = append(allFiles, fs.FileInfoToDirEntry(stat))
+			}
 		}
 	}
 
@@ -63,14 +73,21 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]os.DirEntry, error
 
 	for _, file := range files {
 		var fullPath = filepath.Join(root, file.Name())
+
 		if file.IsDir() {
 			recursiveImages, err := ListDirFiles(fullPath, filterRegex)
 			if err != nil {
 				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
 			}
 			allFiles = append(allFiles, recursiveImages...)
-		} else if filterRegex != nil && filterRegex.MatchString(strings.ToLower(file.Name())) {
-			allFiles = append(allFiles, file)
+		} else {
+			if filterRegex != nil {
+				if filterRegex.MatchString(strings.ToLower(file.Name())) {
+					allFiles = append(allFiles, file)
+				}
+			} else {
+				allFiles = append(allFiles, file)
+			}
 		}
 	}
 	return allFiles, nil
