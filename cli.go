@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Path is a type whos sole purpose is to furfil the flag interface
 type Path struct {
 	Input string
 	Files []fs.DirEntry
