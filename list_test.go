@@ -9,10 +9,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func init() {
-	os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
-}
-
 func TestListFiles(t *testing.T) {
 	t.Parallel()
 
@@ -60,6 +56,10 @@ func TestFilterFilesSinceDate(t *testing.T) {
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(files))
+
+	// set the mod time just in case
+	err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
+	assert.NoError(t, err)
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
 	strings, err := FilterFilesSinceDate(files, fromTime)
