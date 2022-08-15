@@ -14,9 +14,11 @@ type Path struct {
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value
 func (p Path) String() string {
 	var b = strings.Builder{}
-	for _, f := range p.Files {
+	for i, f := range p.Files {
+		if i != 0 {
+			b.WriteString(" ")
+		}
 		b.WriteString(f.Name())
-		b.WriteString(" ")
 	}
 	return b.String()
 }
