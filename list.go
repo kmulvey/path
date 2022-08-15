@@ -136,12 +136,6 @@ func FilterFilesBySkipMap(files []os.DirEntry, skipMap map[string]struct{}) ([]o
 	return files, nil
 }
 
-// EscapeFilePath escapes spaces in the filepath used for an exec() call
-func EscapeFilePath(file string) string {
-	var r = strings.NewReplacer(" ", `\ `, "(", `\(`, ")", `\)`, "'", `\'`, "&", `\&`, "@", `\@`)
-	return r.Replace(file)
-}
-
 func remove[T any](slice []T, s int) []T {
 	return append(slice[:s], slice[s+1:]...)
 }
