@@ -1,24 +1,33 @@
 package path
 
 import (
-	"fmt"
+	"io/fs"
+	"strings"
 )
 
 type Path struct {
 	Input string
+	Files []fs.DirEntry
 }
 
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value
-func (v Path) String() string {
-	return fmt.Sprint(v.Input)
+func (p Path) String() string {
+	var b = strings.Builder{}
+	for _, f := range p.Files {
+		b.WriteString(f.Name())
+		b.WriteString(" ")
+	}
+	return b.String()
 }
 
 // Get fulfils the flag.Getter interface https://pkg.go.dev/flag#Getter
-func (v *Path) Get() Path {
-	return *v
+func (p *Path) Get() []fs.DirEntry {
+	return p.Files
 }
 
 // Set fulfils the flag.Value interface https://pkg.go.dev/flag#Value
-func (v *Path) Set(s string) error {
-	return nil
+func (p *Path) Set(s string) error {
+	var files, err = ListFiles(s)
+	p.Files = files
+	return err
 }
