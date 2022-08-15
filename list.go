@@ -11,12 +11,12 @@ import (
 	"time"
 )
 
+// ListFiles is a short cut to list without a regex
 func ListFiles(inputPath string) ([]os.DirEntry, error) {
 	return ListFilesWithFilter(inputPath, nil)
 }
 
-// ListFilesWithFilter un-globs input as well as recursively list all
-// files in the given input
+// ListFilesWithFilter un-globs input as well as recursively list all files in the given input
 func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry
 
@@ -62,7 +62,7 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]os.Dir
 	return allFiles, nil
 }
 
-// ListFiles lists every file in a directory (recursive) and
+// ListDirFiles lists every file in a directory (recursive) and
 // optionally ignores files given in skipMap
 func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
 	var allFiles []os.DirEntry

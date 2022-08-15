@@ -2,6 +2,8 @@ package path
 
 import (
 	"os"
+	"os/user"
+	"path/filepath"
 	"regexp"
 	"testing"
 	"time"
@@ -17,6 +19,24 @@ func TestListFiles(t *testing.T) {
 	assert.Equal(t, 5, len(files))
 
 	files, err = ListFiles("./testdata/one/file")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
+
+	files, err = ListFiles("./doesnotexist")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(files))
+
+	files, err = ListFiles("./testdata/one/*.mp*")
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
+
+	// create file in home dir
+	user, err := user.Current()
+	assert.NoError(t, err)
+	_, err = os.Create(filepath.Join(user.HomeDir, "pathtestfile"))
+	assert.NoError(t, err)
+
+	files, err = ListFiles("~/pathtest*")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 }
