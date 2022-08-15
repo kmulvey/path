@@ -1,12 +1,17 @@
 package path
 
 import (
+	"os"
 	"regexp"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
+}
 
 func TestListFiles(t *testing.T) {
 	t.Parallel()
