@@ -12,13 +12,13 @@ import (
 )
 
 // ListFiles is a short cut to list without a regex
-func ListFiles(inputPath string) ([]os.DirEntry, error) {
+func ListFiles(inputPath string) ([]fs.DirEntry, error) {
 	return ListFilesWithFilter(inputPath, nil)
 }
 
 // ListFilesWithFilter un-globs input as well as recursively list all files in the given input
-func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
-	var allFiles []os.DirEntry
+func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]fs.DirEntry, error) {
+	var allFiles []fs.DirEntry
 
 	// expand ~ paths
 	if strings.Contains(inputPath, "~") {
@@ -64,8 +64,8 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]os.Dir
 
 // ListDirFiles lists every file in a directory (recursive) and
 // optionally ignores files given in skipMap
-func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]os.DirEntry, error) {
-	var allFiles []os.DirEntry
+func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]fs.DirEntry, error) {
+	var allFiles []fs.DirEntry
 	var files, err = os.ReadDir(root)
 	if err != nil {
 		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
@@ -95,7 +95,7 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]os.DirEntry, error
 
 // DirEntryToString converts a slice of fs.FileInfo to a slice
 // of just the files names joined with a given root directory
-func DirEntryToString(files []os.DirEntry) ([]string, error) {
+func DirEntryToString(files []fs.DirEntry) ([]string, error) {
 	var fileNames = make([]string, len(files))
 	for i, file := range files {
 		info, err := file.Info()
@@ -109,7 +109,7 @@ func DirEntryToString(files []os.DirEntry) ([]string, error) {
 
 // FilterFilesSinceDate removes files from the slice if they were modified
 // before the modifiedSince
-func FilterFilesSinceDate(files []os.DirEntry, modifiedSince time.Time) ([]os.DirEntry, error) {
+func FilterFilesSinceDate(files []fs.DirEntry, modifiedSince time.Time) ([]fs.DirEntry, error) {
 	for i := len(files) - 1; i >= 0; i-- {
 		info, err := files[i].Info()
 		if err != nil {
@@ -123,7 +123,7 @@ func FilterFilesSinceDate(files []os.DirEntry, modifiedSince time.Time) ([]os.Di
 }
 
 // FilterFilesBySkipMap removes files from the map that are also in the skipMap
-func FilterFilesBySkipMap(files []os.DirEntry, skipMap map[string]struct{}) ([]os.DirEntry, error) {
+func FilterFilesBySkipMap(files []fs.DirEntry, skipMap map[string]struct{}) ([]fs.DirEntry, error) {
 	for i := len(files) - 1; i >= 0; i-- {
 		info, err := files[i].Info()
 		if err != nil {

@@ -1,6 +1,7 @@
 package path
 
 import (
+	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -98,12 +99,15 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 		"file.mp4": {},
 		"file.mp3": {},
 	}
-	strings, err := FilterFilesBySkipMap(files, skipMap)
+	files, err = FilterFilesBySkipMap(files, skipMap)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(strings))
+	assert.Equal(t, 3, len(files))
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
-	for _, str := range strings {
+	for _, str := range files {
 		assert.False(t, suffixRegex.MatchString(str.Name()))
 	}
+
+	files, err = FilterFilesBySkipMap([]fs.DirEntry{}, skipMap)
+	assert.NoError(t, err)
 }
