@@ -1,7 +1,6 @@
 package path
 
 import (
-	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -107,7 +106,4 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 	for _, str := range files {
 		assert.False(t, suffixRegex.MatchString(str.Name()))
 	}
-
-	files, err = FilterFilesBySkipMap([]fs.DirEntry{}, skipMap)
-	assert.NoError(t, err)
 }
