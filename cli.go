@@ -30,6 +30,7 @@ func (p *Path) Get() []fs.DirEntry {
 
 // Set fulfils the flag.Value interface https://pkg.go.dev/flag#Value
 func (p *Path) Set(s string) error {
+	p.Input = s
 	var files, err = ListFiles(s)
 	p.Files = files
 	return err
