@@ -30,6 +30,11 @@ func TestListFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 
+	files, err = ListFiles("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
+	assert.Equal(t, "./testdata/one/file.mp3", files[0].AbsolutePath)
+
 	// create file in home dir
 	user, err := user.Current()
 	assert.NoError(t, err)

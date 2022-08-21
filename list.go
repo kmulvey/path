@@ -56,10 +56,10 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]File, 
 		} else {
 			if filterRegex != nil {
 				if filterRegex.MatchString(strings.ToLower(stat.Name())) {
-					allFiles = append(allFiles, File{AbsolutePath: filepath.Join(inputPath, file), DirEntry: fs.FileInfoToDirEntry(stat)})
+					allFiles = append(allFiles, File{AbsolutePath: file, DirEntry: fs.FileInfoToDirEntry(stat)})
 				}
 			} else {
-				allFiles = append(allFiles, File{AbsolutePath: filepath.Join(inputPath, file), DirEntry: fs.FileInfoToDirEntry(stat)})
+				allFiles = append(allFiles, File{AbsolutePath: file, DirEntry: fs.FileInfoToDirEntry(stat)})
 			}
 		}
 	}
