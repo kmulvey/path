@@ -131,11 +131,7 @@ func FilterFilesSinceDate(files []File, modifiedSince time.Time) ([]File, error)
 // FilterFilesBySkipMap removes files from the map that are also in the skipMap
 func FilterFilesBySkipMap(files []File, skipMap map[string]struct{}) ([]File, error) {
 	for i := len(files) - 1; i >= 0; i-- {
-		info, err := files[i].DirEntry.Info()
-		if err != nil {
-			return nil, err
-		}
-		if _, has := skipMap[info.Name()]; has {
+		if _, has := skipMap[files[i].AbsolutePath]; has {
 			files = remove(files, i)
 		}
 	}
