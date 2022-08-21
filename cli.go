@@ -1,14 +1,13 @@
 package path
 
 import (
-	"io/fs"
 	"strings"
 )
 
 // Path is a type whos sole purpose is to furfil the flag interface
 type Path struct {
 	Input string
-	Files []fs.DirEntry
+	Files []File
 }
 
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value
@@ -24,7 +23,7 @@ func (p Path) String() string {
 }
 
 // Get fulfils the flag.Getter interface https://pkg.go.dev/flag#Getter
-func (p *Path) Get() []fs.DirEntry {
+func (p *Path) Get() []File {
 	return p.Files
 }
 
