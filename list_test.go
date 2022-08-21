@@ -95,8 +95,8 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 	assert.Equal(t, 5, len(files))
 
 	var skipMap = map[string]struct{}{
-		"file.mp4": {},
-		"file.mp3": {},
+		"testdata/one/file.mp4": {},
+		"testdata/one/file.mp3": {},
 	}
 	files, err = FilterFilesBySkipMap(files, skipMap)
 	assert.NoError(t, err)
