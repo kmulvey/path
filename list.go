@@ -108,11 +108,7 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]File, error) {
 func DirEntryToString(files []File) ([]string, error) {
 	var fileNames = make([]string, len(files))
 	for i, file := range files {
-		info, err := file.DirEntry.Info()
-		if err != nil {
-			return nil, err
-		}
-		fileNames[i] = info.Name()
+		fileNames[i] = file.AbsolutePath
 	}
 	return fileNames, nil
 }
