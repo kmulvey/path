@@ -107,3 +107,20 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 		assert.False(t, suffixRegex.MatchString(str.DirEntry.Name()))
 	}
 }
+
+func TestFilterFilesByRegex(t *testing.T) {
+	t.Parallel()
+
+	var files, err = ListFiles("./testdata/")
+	assert.NoError(t, err)
+	assert.Equal(t, 5, len(files))
+
+	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
+	files, err = FilterFilesByRegex(files, suffixRegex)
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
+
+	for _, str := range files {
+		assert.True(t, suffixRegex.MatchString(str.DirEntry.Name()))
+	}
+}

@@ -138,6 +138,16 @@ func FilterFilesBySkipMap(files []File, skipMap map[string]struct{}) ([]File, er
 	return files, nil
 }
 
+// FilterFilesByRegex removes files from the slice if they do not match the regex
+func FilterFilesByRegex(files []File, filterRegex *regexp.Regexp) ([]File, error) {
+	for i := len(files) - 1; i >= 0; i-- {
+		if !filterRegex.MatchString(strings.ToLower(files[i].AbsolutePath)) {
+			files = remove(files, i)
+		}
+	}
+	return files, nil
+}
+
 func remove[T any](slice []T, s int) []T {
 	return append(slice[:s], slice[s+1:]...)
 }
