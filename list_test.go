@@ -62,7 +62,7 @@ func TestDirEntryToString(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(files))
 
-	strings, err := DirEntryToString(files)
+	var strings = DirEntryToString(files)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(strings))
 	for _, str := range strings {
@@ -98,7 +98,7 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 		"testdata/one/file.mp4": {},
 		"testdata/one/file.mp3": {},
 	}
-	files, err = FilterFilesBySkipMap(files, skipMap)
+	files = FilterFilesBySkipMap(files, skipMap)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(files))
 
@@ -116,7 +116,7 @@ func TestFilterFilesByRegex(t *testing.T) {
 	assert.Equal(t, 5, len(files))
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
-	files, err = FilterFilesByRegex(files, suffixRegex)
+	files = FilterFilesByRegex(files, suffixRegex)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 

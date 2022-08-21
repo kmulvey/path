@@ -105,12 +105,12 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]File, error) {
 
 // DirEntryToString converts a slice of fs.FileInfo to a slice
 // of just the files names joined with a given root directory
-func DirEntryToString(files []File) ([]string, error) {
+func DirEntryToString(files []File) []string {
 	var fileNames = make([]string, len(files))
 	for i, file := range files {
 		fileNames[i] = file.AbsolutePath
 	}
-	return fileNames, nil
+	return fileNames
 }
 
 // FilterFilesSinceDate removes files from the slice if they were modified
@@ -129,23 +129,23 @@ func FilterFilesSinceDate(files []File, modifiedSince time.Time) ([]File, error)
 }
 
 // FilterFilesBySkipMap removes files from the map that are also in the skipMap
-func FilterFilesBySkipMap(files []File, skipMap map[string]struct{}) ([]File, error) {
+func FilterFilesBySkipMap(files []File, skipMap map[string]struct{}) []File {
 	for i := len(files) - 1; i >= 0; i-- {
 		if _, has := skipMap[files[i].AbsolutePath]; has {
 			files = remove(files, i)
 		}
 	}
-	return files, nil
+	return files
 }
 
 // FilterFilesByRegex removes files from the slice if they do not match the regex
-func FilterFilesByRegex(files []File, filterRegex *regexp.Regexp) ([]File, error) {
+func FilterFilesByRegex(files []File, filterRegex *regexp.Regexp) []File {
 	for i := len(files) - 1; i >= 0; i-- {
 		if !filterRegex.MatchString(strings.ToLower(files[i].AbsolutePath)) {
 			files = remove(files, i)
 		}
 	}
-	return files, nil
+	return files
 }
 
 func remove[T any](slice []T, s int) []T {
