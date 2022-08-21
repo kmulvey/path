@@ -17,7 +17,7 @@ func (p Path) String() string {
 		if i != 0 {
 			b.WriteString(" ")
 		}
-		b.WriteString(f.Name())
+		b.WriteString(f.DirEntry.Name())
 	}
 	return b.String()
 }

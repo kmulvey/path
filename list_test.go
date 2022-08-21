@@ -104,6 +104,6 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
 	for _, str := range files {
-		assert.False(t, suffixRegex.MatchString(str.Name()))
+		assert.False(t, suffixRegex.MatchString(str.DirEntry.Name()))
 	}
 }

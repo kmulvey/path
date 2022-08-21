@@ -12,8 +12,8 @@ import (
 )
 
 type File struct {
+	DirEntry     fs.DirEntry
 	AbsolutePath string
-	fs.DirEntry
 }
 
 // ListFiles is a short cut to list without a regex
@@ -56,10 +56,10 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]File, 
 		} else {
 			if filterRegex != nil {
 				if filterRegex.MatchString(strings.ToLower(stat.Name())) {
-					allFiles = append(allFiles, File{filepath.Join(inputPath, file), fs.FileInfoToDirEntry(stat)})
+					allFiles = append(allFiles, File{AbsolutePath: filepath.Join(inputPath, file), DirEntry: fs.FileInfoToDirEntry(stat)})
 				}
 			} else {
-				allFiles = append(allFiles, File{filepath.Join(inputPath, file), fs.FileInfoToDirEntry(stat)})
+				allFiles = append(allFiles, File{AbsolutePath: filepath.Join(inputPath, file), DirEntry: fs.FileInfoToDirEntry(stat)})
 			}
 		}
 	}
@@ -93,10 +93,10 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]File, error) {
 
 			if filterRegex != nil {
 				if filterRegex.MatchString(strings.ToLower(file.Name())) {
-					allFiles = append(allFiles, File{filepath.Join(root, info.Name()), file})
+					allFiles = append(allFiles, File{AbsolutePath: filepath.Join(root, info.Name()), DirEntry: file})
 				}
 			} else {
-				allFiles = append(allFiles, File{filepath.Join(root, info.Name()), file})
+				allFiles = append(allFiles, File{AbsolutePath: filepath.Join(root, info.Name()), DirEntry: file})
 			}
 		}
 	}
@@ -108,7 +108,7 @@ func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]File, error) {
 func DirEntryToString(files []File) ([]string, error) {
 	var fileNames = make([]string, len(files))
 	for i, file := range files {
-		info, err := file.Info()
+		info, err := file.DirEntry.Info()
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func DirEntryToString(files []File) ([]string, error) {
 // before the modifiedSince
 func FilterFilesSinceDate(files []File, modifiedSince time.Time) ([]File, error) {
 	for i := len(files) - 1; i >= 0; i-- {
-		info, err := files[i].Info()
+		info, err := files[i].DirEntry.Info()
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +135,7 @@ func FilterFilesSinceDate(files []File, modifiedSince time.Time) ([]File, error)
 // FilterFilesBySkipMap removes files from the map that are also in the skipMap
 func FilterFilesBySkipMap(files []File, skipMap map[string]struct{}) ([]File, error) {
 	for i := len(files) - 1; i >= 0; i-- {
-		info, err := files[i].Info()
+		info, err := files[i].DirEntry.Info()
 		if err != nil {
 			return nil, err
 		}
