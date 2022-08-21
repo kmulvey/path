@@ -35,6 +35,10 @@ func TestListFiles(t *testing.T) {
 	assert.Equal(t, 1, len(files))
 	assert.Equal(t, "./testdata/one/file.mp3", files[0].AbsolutePath)
 
+	files, err = ListFiles("")
+	assert.NoError(t, err)
+	assert.Equal(t, 0, len(files))
+
 	// create file in home dir
 	user, err := user.Current()
 	assert.NoError(t, err)
@@ -57,6 +61,19 @@ func TestListFilesWithFilter(t *testing.T) {
 
 	files, err = ListFilesWithFilter("./testdata/two", suffixRegex)
 	assert.NoError(t, err)
+	assert.Equal(t, 0, len(files))
+
+	files, err = ListFilesWithFilter("./testdata/one/file.mp3", suffixRegex)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
+	assert.True(t, suffixRegex.MatchString(files[0].DirEntry.Name()))
+}
+
+func TestListDirFiles(t *testing.T) {
+	t.Parallel()
+
+	files, err := ListDirFiles("", nil)
+	assert.Equal(t, "error listing all files in dir: , error: open : no such file or directory", err.Error())
 	assert.Equal(t, 0, len(files))
 }
 
