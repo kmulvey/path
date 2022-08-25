@@ -15,7 +15,7 @@ func FilterFilesByDateRange(files []File, beginTime, endTime time.Time) ([]File,
 		if err != nil {
 			return nil, err
 		}
-		if info.ModTime().After(beginTime) && info.ModTime().Before(endTime) {
+		if info.ModTime().Before(beginTime) || info.ModTime().After(endTime) {
 			files = goutils.RemoveElementFromArray(files, i)
 		}
 	}

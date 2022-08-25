@@ -104,7 +104,7 @@ func TestFilterFilesSinceDate(t *testing.T) {
 	assert.NoError(t, err)
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
-	strings, err := FilterFilesSinceDate(files, fromTime)
+	strings, err := FilterFilesByDateRange(files, fromTime, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(strings))
 }
