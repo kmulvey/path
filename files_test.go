@@ -1,6 +1,7 @@
 package path
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"os/user"
@@ -112,4 +113,5 @@ func TestListFilesWithSizeFilter(t *testing.T) {
 	var files, err = ListFilesWithSizeFilter("./testdata/", 4000, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
+	fmt.Println(files)
 }
