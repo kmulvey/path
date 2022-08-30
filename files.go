@@ -125,7 +125,7 @@ func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
-			if info.ModTime().Before(beginTime) || info.ModTime().After(endTime) {
+			if info.ModTime().After(beginTime) && info.ModTime().Before(endTime) {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
 			return nil
@@ -137,8 +137,8 @@ func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]
 	return allFiles, nil
 }
 
-// ListFilesWithFilterMap recursivly lists all files skipping those that exist in the skip map.
-func ListFilesWithFilterMap(inputPath string, skipMap map[string]struct{}) ([]Entry, error) {
+// ListFilesWithMapFilter recursivly lists all files skipping those that exist in the skip map.
+func ListFilesWithMapFilter(inputPath string, skipMap map[string]struct{}) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
@@ -148,7 +148,7 @@ func ListFilesWithFilterMap(inputPath string, skipMap map[string]struct{}) ([]En
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
-			if _, has := skipMap[path]; has {
+			if _, has := skipMap[path]; !has {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
 			return nil
@@ -160,7 +160,7 @@ func ListFilesWithFilterMap(inputPath string, skipMap map[string]struct{}) ([]En
 	return allFiles, nil
 }
 
-// ListFilesWithPermissionsFilter recursivly lists all files skipping those that are not in the given range.
+// ListFilesWithPermissionsFilter recursivly lists all files skipping those that are not in the given range, inclusive.
 func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry, error) {
 	var allFiles []Entry
 
@@ -171,7 +171,7 @@ func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry,
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
-			if info.Mode() < fs.FileMode(min) || info.Mode() > fs.FileMode(max) {
+			if info.Mode() >= fs.FileMode(min) && info.Mode() <= fs.FileMode(max) {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
 			return nil
@@ -183,7 +183,7 @@ func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry,
 	return allFiles, nil
 }
 
-// ListFilesWithSizeFilter recursivly lists all files skipping those that are not in the given range.
+// ListFilesWithSizeFilter recursivly lists all files skipping those that are not in the given range, inclusive.
 func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) {
 	var allFiles []Entry
 
@@ -194,7 +194,7 @@ func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) 
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
-			if info.Size() < min || info.Size() > max {
+			if info.Size() >= min && info.Size() <= max {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
 			return nil

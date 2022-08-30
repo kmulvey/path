@@ -1,11 +1,13 @@
 package path
 
 import (
+	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -66,4 +68,48 @@ func TestListFilesWithFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 	assert.True(t, suffixRegex.MatchString(files[0].FileInfo.Name()))
+}
+
+func TestListFilesWithDateFilter(t *testing.T) {
+	t.Parallel()
+
+	// set the mod time just in case
+	var err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
+	assert.NoError(t, err)
+
+	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
+	files, err := ListFilesWithDateFilter("./testdata/", fromTime, time.Now())
+	assert.NoError(t, err)
+	assert.Equal(t, 7, len(files))
+}
+
+func TestListFilesWithMapFilter(t *testing.T) {
+	t.Parallel()
+
+	var skipMap = map[string]struct{}{
+		"testdata/one/file.mp4": {},
+		"testdata/one/file.mp3": {},
+	}
+
+	files, err := ListFilesWithMapFilter("./testdata/", skipMap)
+	assert.NoError(t, err)
+	assert.Equal(t, 6, len(files))
+}
+
+func TestListFilesWithPermissionsFilter(t *testing.T) {
+	t.Parallel()
+
+	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
+
+	var files, err = ListFilesWithPermissionsFilter("./testdata/", uint32(fs.ModePerm), uint32(fs.ModePerm))
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
+}
+
+func TestListFilesWithSizeFilter(t *testing.T) {
+	t.Parallel()
+
+	var files, err = ListFilesWithSizeFilter("./testdata/", 4000, 6000)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
 }
