@@ -7,7 +7,7 @@ import (
 // Path is a type whos sole purpose is to furfil the flag interface
 type Path struct {
 	Input string
-	Files []File
+	Files []Entry
 }
 
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value
@@ -17,13 +17,13 @@ func (p Path) String() string {
 		if i != 0 {
 			b.WriteString(" ")
 		}
-		b.WriteString(f.DirEntry.Name())
+		b.WriteString(f.FileInfo.Name())
 	}
 	return b.String()
 }
 
 // Get fulfils the flag.Getter interface https://pkg.go.dev/flag#Getter
-func (p *Path) Get() []File {
+func (p *Path) Get() []Entry {
 	return p.Files
 }
 
