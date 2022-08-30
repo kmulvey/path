@@ -15,7 +15,7 @@ func TestListFiles(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
+	assert.Equal(t, 8, len(files))
 
 	files, err = ListFiles("./testdata/one/file")
 	assert.NoError(t, err)
@@ -65,28 +65,5 @@ func TestListFilesWithFilter(t *testing.T) {
 	files, err = ListFilesWithFilter("./testdata/one/file.mp3", suffixRegex)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
-	assert.True(t, suffixRegex.MatchString(files[0].DirEntry.Name()))
-}
-
-func TestListDirFiles(t *testing.T) {
-	t.Parallel()
-
-	files, err := ListDirFiles("", nil)
-	assert.Equal(t, "error listing all files in dir: , error: open : no such file or directory", err.Error())
-	assert.Equal(t, 0, len(files))
-}
-
-func TestDirEntryToString(t *testing.T) {
-	t.Parallel()
-
-	var files, err = ListFiles("./testdata/")
-	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
-
-	var strings = DirEntryToString(files)
-	assert.NoError(t, err)
-	assert.Equal(t, 5, len(strings))
-	for _, str := range strings {
-		assert.IsType(t, "", str)
-	}
+	assert.True(t, suffixRegex.MatchString(files[0].FileInfo.Name()))
 }
