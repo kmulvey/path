@@ -110,7 +110,7 @@ func TestListFilesWithPermissionsFilter(t *testing.T) {
 func TestListFilesWithSizeFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = ListFilesWithSizeFilter("./testdata/", 4000, 6000)
+	var files, err = ListFilesWithSizeFilter("./testdata/", 4100, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 	for _, f := range files {
