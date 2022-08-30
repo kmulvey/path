@@ -3,11 +3,11 @@ package path
 import (
 	"fmt"
 	"io/fs"
-	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 type File struct {
@@ -15,14 +15,17 @@ type File struct {
 	AbsolutePath string
 }
 
-// ListFiles is a short cut to list without a regex
-func ListFiles(inputPath string) ([]File, error) {
-	return ListFilesWithFilter(inputPath, nil)
+type Entry struct {
+	FileInfo     fs.FileInfo
+	AbsolutePath string
 }
 
-// ListFilesWithFilter un-globs input as well as recursively list all files in the given input
-func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]File, error) {
-	var allFiles []File
+func (e *Entry) String() string {
+	return e.AbsolutePath
+}
+
+// preProcessInput expands ~, and un-globs input
+func preProcessInput(inputPath string) ([]string, error) {
 
 	// expand ~ paths
 	if strings.Contains(inputPath, "~") {
@@ -34,80 +37,141 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]File, 
 	}
 
 	// try un-globing the input
-	files, err := filepath.Glob(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("could not glob files: %w", err)
-	}
+	return filepath.Glob(inputPath)
+}
 
-	// go through the glob output and expand all dirs
-	for _, file := range files {
-		stat, err := os.Stat(file)
+// ListFiles recursivly lists all files
+func ListFiles(inputPath string) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			return nil
+		})
 		if err != nil {
-			return nil, fmt.Errorf("could not stat file: %s, err: %w", file, err)
-		}
-
-		if stat.IsDir() {
-			dirFiles, err := ListDirFiles(file, filterRegex)
-			if err != nil {
-				return nil, fmt.Errorf("could not list files in dir: %s, err: %w", file, err)
-			}
-			allFiles = append(allFiles, dirFiles...)
-		} else {
-			if filterRegex != nil {
-				if filterRegex.MatchString(strings.ToLower(stat.Name())) {
-					allFiles = append(allFiles, File{AbsolutePath: file, DirEntry: fs.FileInfoToDirEntry(stat)})
-				}
-			} else {
-				allFiles = append(allFiles, File{AbsolutePath: file, DirEntry: fs.FileInfoToDirEntry(stat)})
-			}
-		}
-	}
-
-	return allFiles, nil
-}
-
-// ListDirFiles lists every file in a directory (recursive) and
-// optionally ignores files given in skipMap
-func ListDirFiles(root string, filterRegex *regexp.Regexp) ([]File, error) {
-	var allFiles []File
-	var files, err = os.ReadDir(root)
-	if err != nil {
-		return nil, fmt.Errorf("error listing all files in dir: %s, error: %s", root, err.Error())
-	}
-
-	for _, file := range files {
-		var fullPath = filepath.Join(root, file.Name())
-
-		if file.IsDir() {
-			recursiveImages, err := ListDirFiles(fullPath, filterRegex)
-			if err != nil {
-				return nil, fmt.Errorf("error from recursive call to ListFiles, error: %s", err.Error())
-			}
-			allFiles = append(allFiles, recursiveImages...)
-		} else {
-			info, err := file.Info()
-			if err != nil {
-				return nil, fmt.Errorf("error getting file.Info(), error: %s", err.Error())
-			}
-
-			if filterRegex != nil {
-				if filterRegex.MatchString(strings.ToLower(file.Name())) {
-					allFiles = append(allFiles, File{AbsolutePath: filepath.Join(root, info.Name()), DirEntry: file})
-				}
-			} else {
-				allFiles = append(allFiles, File{AbsolutePath: filepath.Join(root, info.Name()), DirEntry: file})
-			}
+			return nil, err
 		}
 	}
 	return allFiles, nil
 }
 
-// DirEntryToString converts a slice of fs.FileInfo to a slice
-// of just the files names joined with a given root directory
-func DirEntryToString(files []File) []string {
-	var fileNames = make([]string, len(files))
-	for i, file := range files {
-		fileNames[i] = file.AbsolutePath
+// ListFilesWithFilter recursivly lists all files, filtering the names based on the given regex.
+func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			if filterRegex.MatchString(strings.ToLower(info.Name())) {
+				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
-	return fileNames
+	return allFiles, nil
+}
+
+// ListFilesWithDateFilter recursivly lists all files, filtering based on modtime.
+func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			if info.ModTime().Before(beginTime) || info.ModTime().After(endTime) {
+				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return allFiles, nil
+}
+
+// ListFilesWithFilterMap recursivly lists all files skipping those that exist in the skip map.
+func ListFilesWithFilterMap(inputPath string, skipMap map[string]struct{}) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			if _, has := skipMap[path]; has {
+				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return allFiles, nil
+}
+
+// ListFilesWithPermissionsFilter recursivly lists all files skipping those that are not in the given range.
+func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			if info.Mode() < fs.FileMode(min) || info.Mode() > fs.FileMode(max) {
+				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return allFiles, nil
+}
+
+// ListFilesWithSizeFilter recursivly lists all files skipping those that are not in the given range.
+func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) {
+	var allFiles []Entry
+
+	var globFiles, err = preProcessInput(inputPath)
+
+	for _, gf := range globFiles {
+		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+			if err != nil {
+				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			if info.Size() < min || info.Size() > max {
+				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+			}
+			return nil
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return allFiles, nil
 }
