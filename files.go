@@ -70,11 +70,14 @@ func preProcessInput(inputPath string) ([]string, error) {
 	return filepath.Glob(inputPath)
 }
 
-// ListFiles recursivly lists all files
+// ListFiles recursively lists all files
 func ListFiles(inputPath string) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
@@ -91,11 +94,14 @@ func ListFiles(inputPath string) ([]Entry, error) {
 	return allFiles, nil
 }
 
-// ListFilesWithFilter recursivly lists all files, filtering the names based on the given regex.
+// ListFilesWithFilter recursively lists all files, filtering the names based on the given regex.
 func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
@@ -114,11 +120,14 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]Entry,
 	return allFiles, nil
 }
 
-// ListFilesWithDateFilter recursivly lists all files, filtering based on modtime.
+// ListFilesWithDateFilter recursively lists all files, filtering based on modtime.
 func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
@@ -137,11 +146,14 @@ func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]
 	return allFiles, nil
 }
 
-// ListFilesWithMapFilter recursivly lists all files skipping those that exist in the skip map.
+// ListFilesWithMapFilter recursively lists all files skipping those that exist in the skip map.
 func ListFilesWithMapFilter(inputPath string, skipMap map[string]struct{}) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
@@ -160,11 +172,14 @@ func ListFilesWithMapFilter(inputPath string, skipMap map[string]struct{}) ([]En
 	return allFiles, nil
 }
 
-// ListFilesWithPermissionsFilter recursivly lists all files skipping those that are not in the given range, inclusive.
+// ListFilesWithPermissionsFilter recursively lists all files skipping those that are not in the given range, inclusive.
 func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
@@ -183,11 +198,14 @@ func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry,
 	return allFiles, nil
 }
 
-// ListFilesWithSizeFilter recursivly lists all files skipping those that are not in the given range, inclusive.
+// ListFilesWithSizeFilter recursively lists all files skipping those that are not in the given range, inclusive.
 func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+	}
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
