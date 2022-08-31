@@ -12,6 +12,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestPreProcessInput(t *testing.T) {
+	t.Parallel()
+
+	var files, err = preProcessInput("./testdata/*")
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
+
+	files, err = preProcessInput("a/b[")
+	assert.Equal(t, "syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
+}
+
 func TestListFiles(t *testing.T) {
 	t.Parallel()
 
@@ -49,6 +61,10 @@ func TestListFiles(t *testing.T) {
 	files, err = ListFiles("~/pathtest*")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
+
+	files, err = ListFiles("a/b[")
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestListFilesWithFilter(t *testing.T) {
@@ -68,6 +84,10 @@ func TestListFilesWithFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 	assert.True(t, suffixRegex.MatchString(files[0].FileInfo.Name()))
+
+	files, err = ListFilesWithFilter("a/b[", suffixRegex)
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestListFilesWithDateFilter(t *testing.T) {
@@ -81,6 +101,10 @@ func TestListFilesWithDateFilter(t *testing.T) {
 	files, err := ListFilesWithDateFilter("./testdata/", fromTime, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(files))
+
+	files, err = ListFilesWithDateFilter("a/b[", fromTime, time.Now())
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestListFilesWithMapFilter(t *testing.T) {
@@ -94,6 +118,10 @@ func TestListFilesWithMapFilter(t *testing.T) {
 	files, err := ListFilesWithMapFilter("./testdata/", skipMap)
 	assert.NoError(t, err)
 	assert.Equal(t, 6, len(files))
+
+	files, err = ListFilesWithMapFilter("a/b[", skipMap)
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestListFilesWithPermissionsFilter(t *testing.T) {
@@ -104,6 +132,10 @@ func TestListFilesWithPermissionsFilter(t *testing.T) {
 	var files, err = ListFilesWithPermissionsFilter("./testdata/", uint32(fs.ModePerm), uint32(fs.ModePerm))
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
+
+	files, err = ListFilesWithPermissionsFilter("a/b[", uint32(fs.ModePerm), uint32(fs.ModePerm))
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestListFilesWithSizeFilter(t *testing.T) {
@@ -112,6 +144,10 @@ func TestListFilesWithSizeFilter(t *testing.T) {
 	var files, err = ListFilesWithSizeFilter("./testdata/", 4100, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
+
+	files, err = ListFilesWithSizeFilter("a/b[", 4100, 6000)
+	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
 }
 
 func TestOnlyDirs(t *testing.T) {
