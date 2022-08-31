@@ -1,7 +1,6 @@
 package path
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"os/user"
@@ -113,7 +112,38 @@ func TestListFilesWithSizeFilter(t *testing.T) {
 	var files, err = ListFilesWithSizeFilter("./testdata/", 4100, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
-	for _, f := range files {
-		fmt.Println(f.AbsolutePath, f.FileInfo.Size())
+}
+
+func TestOnlyDirs(t *testing.T) {
+	t.Parallel()
+
+	var files, err = ListFiles("./testdata/")
+	assert.NoError(t, err)
+
+	files = OnlyDirs(files)
+	assert.Equal(t, 3, len(files))
+}
+
+func TestOnlyFiles(t *testing.T) {
+	t.Parallel()
+
+	var files, err = ListFiles("./testdata/")
+	assert.NoError(t, err)
+
+	files = OnlyFiles(files)
+	assert.Equal(t, 5, len(files))
+}
+
+func TestOnlyNames(t *testing.T) {
+	t.Parallel()
+
+	var files, err = ListFiles("./testdata/")
+	assert.NoError(t, err)
+
+	var strings = OnlyNames(files)
+	assert.Equal(t, 8, len(strings))
+
+	for _, str := range strings {
+		assert.IsType(t, "", str)
 	}
 }

@@ -48,7 +48,7 @@ func OnlyNames(input []Entry) []string {
 	var result = make([]string, len(input))
 	for i, entry := range input {
 		if !entry.FileInfo.IsDir() {
-			result[i] = entry.AbsolutePath
+			result[i] = entry.String()
 		}
 	}
 	return result
