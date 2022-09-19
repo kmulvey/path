@@ -1,6 +1,7 @@
 package path
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"regexp"
@@ -25,6 +26,9 @@ func TestFilterFilesSinceDate(t *testing.T) {
 	files, err = FilterFilesByDateRange(files, fromTime, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(files))
+	for i, f := range files {
+		fmt.Printf("%d %s %s \n", i, f.FileInfo.ModTime(), f.FileInfo.Name())
+	}
 }
 
 func TestFilterFilesBySkipMap(t *testing.T) {
@@ -85,6 +89,9 @@ func TestFilterFilesBySize(t *testing.T) {
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
+	for i, f := range files {
+		fmt.Printf("%d, %s \n", i, f.FileInfo.Name())
+	}
 
 	files, err = FilterFilesBySize(files, 4000, 6000)
 	assert.NoError(t, err)
