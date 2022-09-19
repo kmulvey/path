@@ -50,8 +50,12 @@ func FilterFilesByPerms(files []Entry, min, max uint32) ([]Entry, error) {
 }
 
 // FilterFilesBySize removes files from the slice if they are not in the given range.
+// Ignores dirs.
 func FilterFilesBySize(files []Entry, min, max int64) ([]Entry, error) {
 	for i := len(files) - 1; i >= 0; i-- {
+		if files[i].FileInfo.IsDir() {
+			continue
+		}
 		if files[i].FileInfo.Size() < min || files[i].FileInfo.Size() > max {
 			files = goutils.RemoveElementFromArray(files, i)
 		}
