@@ -27,9 +27,6 @@ func TestFilterFilesSinceDate(t *testing.T) {
 	files, err = FilterFilesByDateRange(files, fromTime, time.Now())
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(files))
-	for i, f := range files {
-		fmt.Printf("%d %s %s \n", i, f.FileInfo.ModTime(), f.FileInfo.Name())
-	}
 }
 
 func TestFilterFilesBySkipMap(t *testing.T) {
@@ -64,10 +61,6 @@ func TestFilterFilesByRegex(t *testing.T) {
 	files = FilterFilesByRegex(files, suffixRegex)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
-
-	for _, str := range files {
-		assert.True(t, suffixRegex.MatchString(str.FileInfo.Name()))
-	}
 }
 
 func TestFilterFilesByPerms(t *testing.T) {
@@ -91,11 +84,11 @@ func TestFilterFilesBySize(t *testing.T) {
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
-	for i, f := range files {
-		fmt.Printf("%d, %s \n", i, f.FileInfo.Name())
-	}
 
 	files, err = FilterFilesBySize(files, 4000, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
+	for i, f := range files {
+		fmt.Printf("%d, %d, %s \n", i, f.FileInfo.Mode(), f.FileInfo.Name())
+	}
 }
