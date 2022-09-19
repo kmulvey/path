@@ -1,7 +1,6 @@
 package path
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"regexp"
@@ -88,7 +87,4 @@ func TestFilterFilesBySize(t *testing.T) {
 	files, err = FilterFilesBySize(files, 4000, 6000)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
-	for i, f := range files {
-		fmt.Printf("%d, %d, %s \n", i, f.FileInfo.Mode(), f.FileInfo.Name())
-	}
 }
