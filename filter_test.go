@@ -23,8 +23,7 @@ func TestFilterFilesSinceDate(t *testing.T) {
 	assert.Equal(t, 8, len(files))
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
-	files, err = FilterFilesByDateRange(files, fromTime, time.Now())
-	assert.NoError(t, err)
+	files = FilterFilesByDateRange(files, fromTime, time.Now())
 	assert.Equal(t, 7, len(files))
 }
 
@@ -72,8 +71,7 @@ func TestFilterFilesByPerms(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
 
-	files, err = FilterFilesByPerms(files, uint32(fs.ModePerm), uint32(fs.ModePerm))
-	assert.NoError(t, err)
+	files = FilterFilesByPerms(files, uint32(fs.ModePerm), uint32(fs.ModePerm))
 	assert.Equal(t, 1, len(files))
 }
 
@@ -84,7 +82,6 @@ func TestFilterFilesBySize(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
 
-	files, err = FilterFilesBySize(files, 4000, 6000)
-	assert.NoError(t, err)
+	files = FilterFilesBySize(files, 4000, 6000)
 	assert.Equal(t, 1, len(files))
 }
