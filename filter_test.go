@@ -14,13 +14,14 @@ import (
 func TestFilterFilesSinceDate(t *testing.T) {
 	t.Parallel()
 
-	var files, err = ListFiles("./testdata/")
+	// set the mod time because in ci/cd the mod time is the time of `git checkout` for the build
+	// i.e. "now"
+	var err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
+	assert.NoError(t, err)
+
+	files, err := ListFiles("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
-
-	// set the mod time just in case
-	err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
-	assert.NoError(t, err)
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
 	files, err = FilterFilesByDateRange(files, fromTime, time.Now())
@@ -72,11 +73,12 @@ func TestFilterFilesByRegex(t *testing.T) {
 func TestFilterFilesByPerms(t *testing.T) {
 	t.Parallel()
 
+	// set the perms because the checkout in ci/cd doest match local
+	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
+
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 8, len(files))
-
-	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
 
 	files, err = FilterFilesByPerms(files, uint32(fs.ModePerm), uint32(fs.ModePerm))
 	assert.NoError(t, err)
