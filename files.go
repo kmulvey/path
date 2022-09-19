@@ -10,11 +10,6 @@ import (
 	"time"
 )
 
-type File struct {
-	DirEntry     fs.DirEntry
-	AbsolutePath string
-}
-
 type Entry struct {
 	FileInfo     fs.FileInfo
 	AbsolutePath string
