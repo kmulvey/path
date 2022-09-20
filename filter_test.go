@@ -20,11 +20,12 @@ func TestFilterFilesSinceDate(t *testing.T) {
 
 	files, err := ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
 	files = FilterFilesByDateRange(files, fromTime, time.Now())
-	assert.Equal(t, 7, len(files))
+	assert.Equal(t, 6, len(files))
 }
 
 func TestFilterFilesBySkipMap(t *testing.T) {
@@ -32,7 +33,8 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	var skipMap = map[string]struct{}{
 		"testdata/one/file.mp4": {},
@@ -40,7 +42,7 @@ func TestFilterFilesBySkipMap(t *testing.T) {
 	}
 	files = FilterFilesBySkipMap(files, skipMap)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(files))
+	assert.Equal(t, 5, len(files))
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
 	for _, str := range files {
@@ -53,7 +55,8 @@ func TestFilterFilesByRegex(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
 	files = FilterFilesByRegex(files, suffixRegex)
@@ -69,7 +72,8 @@ func TestFilterFilesByPerms(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files = FilterFilesByPerms(files, uint32(fs.ModePerm), uint32(fs.ModePerm))
 	assert.Equal(t, 1, len(files))
@@ -80,7 +84,8 @@ func TestFilterFilesBySize(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files = FilterFilesBySize(files, 4000, 6000)
 	assert.Equal(t, 1, len(files))

@@ -15,8 +15,9 @@ func TestCli(t *testing.T) {
 	assert.NoError(t, err)
 
 	var files = p.Get()
-	assert.Equal(t, 7, len(files))
+	assert.Equal(t, 5, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	var str = p.String()
-	assert.Equal(t, "one file file.mp3 file.mp4 file.txt two file", str)
+	assert.Equal(t, "file file.mp3 file.mp4 file.txt file", str)
 }

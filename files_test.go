@@ -29,7 +29,8 @@ func TestListFiles(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 7, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files, err = ListFiles("./testdata/one/file")
 	assert.NoError(t, err)
@@ -100,7 +101,8 @@ func TestListFilesWithDateFilter(t *testing.T) {
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
 	files, err := ListFilesWithDateFilter("./testdata/", fromTime, time.Now())
 	assert.NoError(t, err)
-	assert.Equal(t, 7, len(files))
+	assert.Equal(t, 6, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files, err = ListFilesWithDateFilter("a/b[", fromTime, time.Now())
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
@@ -117,7 +119,8 @@ func TestListFilesWithMapFilter(t *testing.T) {
 
 	files, err := ListFilesWithMapFilter("./testdata/", skipMap)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(files))
+	assert.Equal(t, 5, len(files))
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files, err = ListFilesWithMapFilter("a/b[", skipMap)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
@@ -155,9 +158,10 @@ func TestOnlyDirs(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files = OnlyDirs(files)
-	assert.Equal(t, 3, len(files))
+	assert.Equal(t, 2, len(files))
 }
 
 func TestOnlyFiles(t *testing.T) {
@@ -165,6 +169,7 @@ func TestOnlyFiles(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
+	assert.False(t, Contains(files, "./testdata/"))
 
 	files = OnlyFiles(files)
 	assert.Equal(t, 5, len(files))
@@ -175,9 +180,10 @@ func TestOnlyNames(t *testing.T) {
 
 	var files, err = ListFiles("./testdata/")
 	assert.NoError(t, err)
+	assert.False(t, Contains(files, "./testdata/"))
 
 	var strings = OnlyNames(files)
-	assert.Equal(t, 8, len(strings))
+	assert.Equal(t, 7, len(strings))
 
 	for _, str := range strings {
 		assert.IsType(t, "", str)
