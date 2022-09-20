@@ -3,6 +3,7 @@ package path
 import (
 	"fmt"
 	"io/fs"
+	"os"
 	"os/user"
 	"path/filepath"
 	"regexp"
@@ -42,11 +43,18 @@ func OnlyFiles(input []Entry) []Entry {
 func OnlyNames(input []Entry) []string {
 	var result = make([]string, len(input))
 	for i, entry := range input {
-		if !entry.FileInfo.IsDir() {
-			result[i] = entry.String()
-		}
+		result[i] = entry.String()
 	}
 	return result
+}
+
+func Contains(input []Entry, needle string) bool {
+	for _, entry := range input {
+		if entry.AbsolutePath == needle {
+			return true
+		}
+	}
+	return false
 }
 
 // preProcessInput expands ~, and un-globs input
@@ -77,7 +85,15 @@ func ListFiles(inputPath string) ([]Entry, error) {
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+				return fmt.Errorf("Walk error in dir: %s, error: %w", path, err)
+			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
 			}
 			allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			return nil
@@ -102,6 +118,14 @@ func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]Entry,
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
 			}
 			if filterRegex.MatchString(strings.ToLower(info.Name())) {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
@@ -129,6 +153,14 @@ func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
+			}
 			if info.ModTime().After(beginTime) && info.ModTime().Before(endTime) {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
@@ -154,6 +186,14 @@ func ListFilesWithMapFilter(inputPath string, skipMap map[string]struct{}) ([]En
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
 			}
 			if _, has := skipMap[path]; !has {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
@@ -181,6 +221,14 @@ func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry,
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
 			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
+			}
 			if info.Mode() >= fs.FileMode(min) && info.Mode() <= fs.FileMode(max) {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
 			}
@@ -206,6 +254,14 @@ func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) 
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
 				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
+			}
+			// do not include the root dir
+			stat, err := os.Stat(path)
+			if err != nil {
+				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+			}
+			if gf == path && stat.IsDir() {
+				return nil
 			}
 			if info.Size() >= min && info.Size() <= max {
 				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
