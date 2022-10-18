@@ -20,6 +20,10 @@ func (e *Entry) String() string {
 	return e.AbsolutePath
 }
 
+func (e *Entry) IsDir() bool {
+	return e.FileInfo.IsDir()
+}
+
 func OnlyDirs(input []Entry) []Entry {
 	var result []Entry
 	for _, entry := range input {

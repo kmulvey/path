@@ -31,6 +31,7 @@ func TestListFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
+	assert.True(t, files[0].IsDir())
 
 	files, err = ListFiles("./testdata/one/file")
 	assert.NoError(t, err)
