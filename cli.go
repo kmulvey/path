@@ -2,9 +2,11 @@ package path
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -36,6 +38,8 @@ func (p *Path) Get() []Entry {
 func (p *Path) Set(s string) error {
 	p.GivenInput = s
 
+	s = filepath.Clean(s)
+
 	var files, err = ListFiles(s)
 	if err != nil {
 		return err
@@ -63,9 +67,13 @@ func inputToEntry(inputPath string) (Entry, error) {
 		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
 	}
 
-	stat, err := os.Stat(abs)
-	if err != nil {
-		return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
+	var stat fs.FileInfo
+	var hasGlob = regexp.MustCompile(`\*|\!|\?|\[|\]`)
+	if !hasGlob.MatchString(abs) {
+		stat, err = os.Stat(abs)
+		if err != nil {
+			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
+		}
 	}
 
 	return Entry{AbsolutePath: abs, FileInfo: stat}, nil
