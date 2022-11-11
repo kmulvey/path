@@ -24,4 +24,14 @@ func TestCli(t *testing.T) {
 
 	// this is not the best test but when it runs in ci/cd its hard to predict what the path should look like
 	assert.True(t, strings.HasPrefix(p.ComputedPath.AbsolutePath, "/"))
+
+	err = p.Set("~/testdata/*")
+	assert.NoError(t, err)
+	assert.True(t, strings.HasPrefix(p.ComputedPath.AbsolutePath, "/"))
+	assert.Nil(t, p.ComputedPath.FileInfo)
+
+	err = p.Set("./testdata/")
+	assert.NoError(t, err)
+	assert.True(t, strings.HasPrefix(p.ComputedPath.AbsolutePath, "/"))
+	assert.NotNil(t, p.ComputedPath.FileInfo)
 }
