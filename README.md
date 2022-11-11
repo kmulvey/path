@@ -10,3 +10,7 @@ A simple library to handle file path input in Go.
 - List files in directories recursivly
 - Optional regex to filter results
 - Cli via [flag](https://pkg.go.dev/flag), see [example](https://github.com/kmulvey/path/blob/main/cmd/main.go)
+
+## Caveats
+When passing in globbed patterns via cli you must quote them, if you dont bash will expand them and could result in undesired results.
+`go run cmd/main.go -path "/my/globbed/path/*"`
