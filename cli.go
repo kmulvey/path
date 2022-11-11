@@ -1,13 +1,18 @@
 package path
 
 import (
+	"fmt"
+	"os"
+	"os/user"
+	"path/filepath"
 	"strings"
 )
 
 // Path is a type whos sole purpose is to furfil the flag interface
 type Path struct {
-	Input string
-	Files []Entry
+	GivenInput   string // exactly what the user typed
+	ComputedPath Entry  // converts relative paths to absolute
+	Files        []Entry
 }
 
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value
@@ -29,8 +34,39 @@ func (p *Path) Get() []Entry {
 
 // Set fulfils the flag.Value interface https://pkg.go.dev/flag#Value
 func (p *Path) Set(s string) error {
-	p.Input = s
+	p.GivenInput = s
+
 	var files, err = ListFiles(s)
+	if err != nil {
+		return err
+	}
 	p.Files = files
+
+	p.ComputedPath, err = inputToEntry(s)
 	return err
+}
+
+// inputToEntry expands ~ and other relative paths to absolute
+func inputToEntry(inputPath string) (Entry, error) {
+
+	// expand ~ paths
+	if strings.Contains(inputPath, "~") {
+		user, err := user.Current()
+		if err != nil {
+			return Entry{}, fmt.Errorf("error getting current user, error: %s", err.Error())
+		}
+		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
+	}
+
+	var abs, err = filepath.Abs(inputPath)
+	if err != nil {
+		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
+	}
+
+	stat, err := os.Stat(abs)
+	if err != nil {
+		return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
+	}
+
+	return Entry{AbsolutePath: abs, FileInfo: stat}, nil
 }
