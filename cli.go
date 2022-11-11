@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// Path is a type whos sole purpose is to furfil the flag interface
+// Path is a type whose sole purpose is to furfil the flag interface
 type Path struct {
 	GivenInput   string // exactly what the user typed
 	ComputedPath Entry  // converts relative paths to absolute
