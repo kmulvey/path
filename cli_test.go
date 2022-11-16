@@ -20,7 +20,7 @@ func TestCli(t *testing.T) {
 	assert.False(t, Contains(files, "./testdata/"))
 
 	var str = p.String()
-	assert.Equal(t, "file file.mp3 file.mp4 file.txt file", str)
+	assert.Equal(t, "testdata/one/file testdata/one/file.mp3 testdata/one/file.mp4 testdata/one/file.txt testdata/two/file", str)
 
 	// this is not the best test but when it runs in ci/cd its hard to predict what the path should look like
 	assert.True(t, strings.HasPrefix(p.ComputedPath.AbsolutePath, "/"))

@@ -11,56 +11,6 @@ import (
 	"time"
 )
 
-type Entry struct {
-	FileInfo     fs.FileInfo
-	AbsolutePath string
-}
-
-func (e *Entry) String() string {
-	return e.AbsolutePath
-}
-
-func (e *Entry) IsDir() bool {
-	return e.FileInfo.IsDir()
-}
-
-func OnlyDirs(input []Entry) []Entry {
-	var result []Entry
-	for _, entry := range input {
-		if entry.FileInfo.IsDir() {
-			result = append(result, entry)
-		}
-	}
-	return result
-}
-
-func OnlyFiles(input []Entry) []Entry {
-	var result []Entry
-	for _, entry := range input {
-		if !entry.FileInfo.IsDir() {
-			result = append(result, entry)
-		}
-	}
-	return result
-}
-
-func OnlyNames(input []Entry) []string {
-	var result = make([]string, len(input))
-	for i, entry := range input {
-		result[i] = entry.String()
-	}
-	return result
-}
-
-func Contains(input []Entry, needle string) bool {
-	for _, entry := range input {
-		if entry.AbsolutePath == needle {
-			return true
-		}
-	}
-	return false
-}
-
 // preProcessInput expands ~, and un-globs input
 func preProcessInput(inputPath string) ([]string, error) {
 

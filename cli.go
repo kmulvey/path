@@ -1,12 +1,7 @@
 package path
 
 import (
-	"fmt"
-	"io/fs"
-	"os"
-	"os/user"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
 
@@ -24,7 +19,7 @@ func (p Path) String() string {
 		if i != 0 {
 			b.WriteString(" ")
 		}
-		b.WriteString(f.FileInfo.Name())
+		b.WriteString(f.String())
 	}
 	return b.String()
 }
@@ -46,35 +41,6 @@ func (p *Path) Set(s string) error {
 	}
 	p.Files = files
 
-	p.ComputedPath, err = inputToEntry(s)
+	p.ComputedPath, err = NewEntry(s)
 	return err
-}
-
-// inputToEntry expands ~ and other relative paths to absolute
-func inputToEntry(inputPath string) (Entry, error) {
-
-	// expand ~ paths
-	if strings.Contains(inputPath, "~") {
-		user, err := user.Current()
-		if err != nil {
-			return Entry{}, fmt.Errorf("error getting current user, error: %s", err.Error())
-		}
-		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
-	}
-
-	var abs, err = filepath.Abs(inputPath)
-	if err != nil {
-		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
-	}
-
-	var stat fs.FileInfo
-	var hasGlob = regexp.MustCompile(`\*|\!|\?|\[|\]`)
-	if !hasGlob.MatchString(abs) {
-		stat, err = os.Stat(abs)
-		if err != nil {
-			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
-		}
-	}
-
-	return Entry{AbsolutePath: abs, FileInfo: stat}, nil
 }
