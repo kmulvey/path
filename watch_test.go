@@ -1,6 +1,7 @@
 package path
 
 import (
+	"context"
 	"errors"
 	"io/fs"
 	"log"
@@ -27,9 +28,9 @@ func TestWatchDirWithFilter(t *testing.T) {
 	}
 
 	var files = make(chan Entry)
-	var shutdown = make(chan struct{})
 	var done = make(chan struct{})
-	var suffixRegex = regexp.MustCompile(".*.txt$")
+	var ctx, cancel = context.WithCancel(context.Background())
+	var regexFilter = NewRegexFilter(regexp.MustCompile(".*.txt$"))
 
 	go func() {
 		var i int
@@ -41,16 +42,18 @@ func TestWatchDirWithFilter(t *testing.T) {
 		close(done)
 	}()
 	go func() {
-		assert.NoError(t, WatchDirWithFilter(dir, suffixRegex, time.Millisecond*50, files, shutdown))
+		assert.NoError(t, WatchDir(ctx, dir, regexFilter, files))
 	}()
+
+	time.Sleep(time.Millisecond * 250) // give time for WatchDir to start up
 
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "file1.txt"), []byte{}, fs.ModePerm))
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "file1.mp3"), []byte{}, fs.ModePerm))
 	assert.NoError(t, os.WriteFile(filepath.Join(dir, "file2.txt"), []byte{}, fs.ModePerm))
 
-	time.Sleep(time.Millisecond * 250)
+	time.Sleep(time.Millisecond * 250) // give time for WatchDir to process event
 
-	close(shutdown)
+	cancel()
 	<-done
 	assert.NoError(t, os.RemoveAll(dir))
 }

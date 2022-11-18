@@ -1,38 +1,88 @@
 package path
 
 import (
+	"context"
 	"regexp"
-	"time"
 
-	mapset "github.com/deckarep/golang-set/v2"
+	"github.com/fsnotify/fsnotify"
 )
 
-func WatchDirWithFilter(inputPath string, filter *regexp.Regexp, refreshInterval time.Duration, files chan Entry, shutdown chan struct{}) error {
+func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files chan Entry) error {
 
+	var errors = make(chan error)
 	defer close(files)
-	var uniqFiles = mapset.NewSet[string]()
-	var ticker = time.NewTicker(refreshInterval)
 
-	for {
-		select {
-		case _, open := <-shutdown:
-			if !open {
-				return nil
-			}
+	// Create new watcher.
+	var watcher, err = fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+	defer watcher.Close()
 
-		case <-ticker.C:
+	// Start listening for events.
+	go func() {
+		defer close(errors)
 
-			var newFiles, err = ListFilesWithFilter(inputPath, filter)
-			if err != nil {
-				return err
-			}
+		for {
+			select {
+			case <-ctx.Done():
+				return
 
-			for _, file := range newFiles {
-				if !uniqFiles.Contains(file.AbsolutePath) {
-					uniqFiles.Add(file.AbsolutePath)
-					files <- file
+			case event, open := <-watcher.Events:
+				if !open {
+					return
 				}
+				var accepted, err = filter.filter(event)
+				if err != nil {
+					errors <- err
+					return
+				}
+				if accepted {
+					if e, err := NewEntry(event.Name); err != nil {
+						errors <- err
+						return
+					} else {
+						files <- e
+					}
+				}
+
+			case err, open := <-watcher.Errors:
+				if !open {
+					return
+				}
+				errors <- err
+				return
 			}
 		}
+	}()
+
+	// Add a path.
+	err = watcher.Add(inputPath)
+	if err != nil {
+		return err
 	}
+
+	return <-errors
+}
+
+type WatchFilter interface {
+	filter(fsnotify.Event) (bool, error)
+}
+
+type NoopFilter struct{}
+
+func (nf NoopFilter) filter(event fsnotify.Event) (bool, error) {
+	return true, nil
+}
+
+type RegexFilter struct {
+	regex *regexp.Regexp
+}
+
+func NewRegexFilter(filterRegex *regexp.Regexp) RegexFilter {
+	return RegexFilter{regex: filterRegex}
+}
+
+func (rf RegexFilter) filter(event fsnotify.Event) (bool, error) {
+	return rf.regex.MatchString(event.Name), nil
 }
