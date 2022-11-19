@@ -12,10 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestWatchDirWithFilter(t *testing.T) {
+func TestWatchDir(t *testing.T) {
 	t.Parallel()
 
 	var dir = "./testwatchdir"
@@ -56,4 +57,77 @@ func TestWatchDirWithFilter(t *testing.T) {
 	cancel()
 	<-done
 	assert.NoError(t, os.RemoveAll(dir))
+}
+
+func TestNoopFilter(t *testing.T) {
+	t.Parallel()
+
+	var noop = NoopFilter{}
+	var accpet, err = noop.filter(fsnotify.Event{Name: "/path/to/file"})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+}
+
+func TestSkipMapFilter(t *testing.T) {
+	t.Parallel()
+
+	var testFile, err = NewEntry("./testdata/one/file.txt")
+	assert.NoError(t, err)
+
+	var skipMapFilter = NewSkipMapFilter(map[string]struct{}{testFile.AbsolutePath: {}})
+	accpet, err := skipMapFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.False(t, accpet)
+
+	testFileTwo, err := NewEntry("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+
+	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: testFileTwo.AbsolutePath})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+}
+
+func TestDateFilter(t *testing.T) {
+	t.Parallel()
+
+	// set the mod time because in ci/cd the mod time is the time of `git checkout` for the build
+	// i.e. "now"
+	var err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
+	assert.NoError(t, err)
+
+	testFile, err := NewEntry("./testdata/one/file.mp4")
+	assert.NoError(t, err)
+
+	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
+	var dateFilter = NewDateFilter(fromTime, time.Now())
+	accpet, err := dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+}
+
+func TestPermissionsFilter(t *testing.T) {
+	t.Parallel()
+
+	// set the perms because the checkout in ci/cd doest match local
+	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
+
+	var testFile, err = NewEntry("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+
+	var permsFilter = NewPermissionsFilter(uint32(fs.ModePerm), uint32(fs.ModePerm))
+	accpet, err := permsFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+}
+
+func TestSizeFilter(t *testing.T) {
+	t.Parallel()
+
+	var testFile, err = NewEntry("./testdata/one/file.mp4")
+	assert.NoError(t, err)
+
+	var sizeFilter = NewSizeFilter(4000, 6000)
+	accpet, err := sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
 }
