@@ -31,7 +31,7 @@ func TestWatchDir(t *testing.T) {
 	var files = make(chan Entry)
 	var done = make(chan struct{})
 	var ctx, cancel = context.WithCancel(context.Background())
-	var regexFilter = NewRegexFilter(regexp.MustCompile(".*.txt$"))
+	var regexFilter = NewRegexWatchFilter(regexp.MustCompile(".*.txt$"))
 
 	go func() {
 		var i int
@@ -62,7 +62,7 @@ func TestWatchDir(t *testing.T) {
 func TestNoopFilter(t *testing.T) {
 	t.Parallel()
 
-	var noop = NoopFilter{}
+	var noop = NoopWatchFilter{}
 	var accpet, err = noop.filter(fsnotify.Event{Name: "/path/to/file"})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
@@ -74,7 +74,7 @@ func TestSkipMapFilter(t *testing.T) {
 	var testFile, err = NewEntry("./testdata/one/file.txt")
 	assert.NoError(t, err)
 
-	var skipMapFilter = NewSkipMapFilter(map[string]struct{}{testFile.AbsolutePath: {}})
+	var skipMapFilter = NewSkipMapWatchFilter(map[string]struct{}{testFile.AbsolutePath: {}})
 	accpet, err := skipMapFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.False(t, accpet)
@@ -99,7 +99,7 @@ func TestDateFilter(t *testing.T) {
 	assert.NoError(t, err)
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
-	var dateFilter = NewDateFilter(fromTime, time.Now())
+	var dateFilter = NewDateWatchFilter(fromTime, time.Now())
 	accpet, err := dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
@@ -121,7 +121,7 @@ func TestPermissionsFilter(t *testing.T) {
 	var testFile, err = NewEntry("./testdata/one/file.mp3")
 	assert.NoError(t, err)
 
-	var permsFilter = NewPermissionsFilter(uint32(fs.ModePerm), uint32(fs.ModePerm))
+	var permsFilter = NewPermissionsWatchFilter(uint32(fs.ModePerm), uint32(fs.ModePerm))
 	accpet, err := permsFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
@@ -140,7 +140,7 @@ func TestSizeFilter(t *testing.T) {
 	var testFile, err = NewEntry("./testdata/one/file.mp4")
 	assert.NoError(t, err)
 
-	var sizeFilter = NewSizeFilter(4000, 6000)
+	var sizeFilter = NewSizeWatchFilter(4000, 6000)
 	accpet, err := sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
