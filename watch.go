@@ -69,7 +69,7 @@ func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files c
 
 //////////////////////////////////////////////////////////////////
 
-// WatchFilter interface facilitates filtering of file events
+// WatchFilter interface facilitates filtering of file events.
 type WatchFilter interface {
 	filter(fsnotify.Event) (bool, error)
 }
@@ -80,7 +80,7 @@ func (nf NoopWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return true, nil
 }
 
-// RegexWatchFilter filters fs events by matching file names to a given regex
+// RegexWatchFilter filters fs events by matching file names to a given regex.
 type RegexWatchFilter struct {
 	regex *regexp.Regexp
 }
@@ -93,7 +93,7 @@ func (rf RegexWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return rf.regex.MatchString(event.Name), nil
 }
 
-// DateWatchFilter filters fs events by matching ensuring ModTime is within the given date range
+// DateWatchFilter filters fs events by matching ensuring ModTime is within the given date range.
 type DateWatchFilter struct {
 	from time.Time
 	to   time.Time
@@ -115,7 +115,7 @@ func (df DateWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return false, nil
 }
 
-// SkipMapWatchFilter filters fs events by ensuring the given file is NOT within the given map
+// SkipMapWatchFilter filters fs events by ensuring the given file is NOT within the given map.
 type SkipMapWatchFilter struct {
 	skipMap map[string]struct{}
 }
@@ -136,7 +136,7 @@ func (smf SkipMapWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return true, nil
 }
 
-// PermissionsWatchFilter filters fs events by ensuring the given file permissions are within the given range
+// PermissionsWatchFilter filters fs events by ensuring the given file permissions are within the given range.
 type PermissionsWatchFilter struct {
 	min uint32
 	max uint32
@@ -158,7 +158,7 @@ func (pf PermissionsWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return true, nil
 }
 
-// SizeWatchFilter filters fs events by ensuring the given file within the given size range (in bytes)
+// SizeWatchFilter filters fs events by ensuring the given file within the given size range (in bytes).
 type SizeWatchFilter struct {
 	min int64
 	max int64

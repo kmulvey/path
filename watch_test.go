@@ -59,7 +59,7 @@ func TestWatchDir(t *testing.T) {
 	assert.NoError(t, os.RemoveAll(dir))
 }
 
-func TestNoopFilter(t *testing.T) {
+func TestNoopWatchWatchFilter(t *testing.T) {
 	t.Parallel()
 
 	var noop = NoopWatchFilter{}
@@ -68,7 +68,7 @@ func TestNoopFilter(t *testing.T) {
 	assert.True(t, accpet)
 }
 
-func TestSkipMapFilter(t *testing.T) {
+func TestSkipMapWatchFilter(t *testing.T) {
 	t.Parallel()
 
 	var testFile, err = NewEntry("./testdata/one/file.txt")
@@ -87,7 +87,7 @@ func TestSkipMapFilter(t *testing.T) {
 	assert.True(t, accpet)
 }
 
-func TestDateFilter(t *testing.T) {
+func TestDateWatchFilter(t *testing.T) {
 	t.Parallel()
 
 	// set the mod time because in ci/cd the mod time is the time of `git checkout` for the build
@@ -112,7 +112,7 @@ func TestDateFilter(t *testing.T) {
 	assert.False(t, accpet)
 }
 
-func TestPermissionsFilter(t *testing.T) {
+func TestPermissionsWatchFilter(t *testing.T) {
 	t.Parallel()
 
 	// set the perms because the checkout in ci/cd doest match local
@@ -134,7 +134,7 @@ func TestPermissionsFilter(t *testing.T) {
 	assert.False(t, accpet)
 }
 
-func TestSizeFilter(t *testing.T) {
+func TestSizeWatchFilter(t *testing.T) {
 	t.Parallel()
 
 	var testFile, err = NewEntry("./testdata/one/file.mp4")
