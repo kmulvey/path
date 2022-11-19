@@ -3,61 +3,111 @@ package path
 import (
 	"io/fs"
 	"regexp"
-	"strings"
 	"time"
 
 	"github.com/kmulvey/goutils"
 )
 
-// FilterFilesByDateRange removes files from the slice if they are not within the given date range.
-func FilterFilesByDateRange(files []Entry, beginTime, endTime time.Time) []Entry {
+// FilterEntities removes files from the slice if they are not accepted by the given filter function.
+func FilterEntities(files []Entry, filter EntriesFilter) []Entry {
 	for i := len(files) - 1; i >= 0; i-- {
-		if files[i].FileInfo.ModTime().Before(beginTime) || files[i].FileInfo.ModTime().After(endTime) {
+		if !filter.filter(files[i]) {
 			files = goutils.RemoveElementFromArray(files, i)
 		}
 	}
 	return files
 }
 
-// FilterFilesBySkipMap removes files from the map that are also in the skipMap.
-func FilterFilesBySkipMap(files []Entry, skipMap map[string]struct{}) []Entry {
-	for i := len(files) - 1; i >= 0; i-- {
-		if _, has := skipMap[files[i].AbsolutePath]; has {
-			files = goutils.RemoveElementFromArray(files, i)
-		}
-	}
-	return files
+// EntitiesFilter interface facilitates filtering entry slices.
+type EntriesFilter interface {
+	filter(Entry) bool
 }
 
-// FilterFilesByRegex removes files from the slice if they do not match the regex.
-func FilterFilesByRegex(files []Entry, filterRegex *regexp.Regexp) []Entry {
-	for i := len(files) - 1; i >= 0; i-- {
-		if !filterRegex.MatchString(strings.ToLower(files[i].AbsolutePath)) {
-			files = goutils.RemoveElementFromArray(files, i)
-		}
-	}
-	return files
+// NoopEntriesFilter always returns true, useful for testing.
+type NoopEntriesFilter struct{}
+
+func (nf NoopEntriesFilter) filter(e Entry) bool {
+	return true
 }
 
-// FilterFilesByPerms removes files from the slice if they are not in the given range.
-func FilterFilesByPerms(files []Entry, min, max uint32) []Entry {
-	for i := len(files) - 1; i >= 0; i-- {
-		if files[i].FileInfo.Mode() < fs.FileMode(min) || files[i].FileInfo.Mode() > fs.FileMode(max) {
-			files = goutils.RemoveElementFromArray(files, i)
-		}
-	}
-	return files
+// RegexEntitiesFilter filters fs events by matching file names to a given regex.
+type RegexEntitiesFilter struct {
+	regex *regexp.Regexp
 }
 
-// FilterFilesBySize removes files from the slice if they are not in the given range.
-// Ignores dirs.
-func FilterFilesBySize(files []Entry, min, max int64) []Entry {
-	for i := len(files) - 1; i >= 0; i-- {
-		if files[i].FileInfo.IsDir() {
-			files = goutils.RemoveElementFromArray(files, i)
-		} else if files[i].FileInfo.Size() < min || files[i].FileInfo.Size() > max {
-			files = goutils.RemoveElementFromArray(files, i)
-		}
+func NewRegexEntitiesFilter(filterRegex *regexp.Regexp) RegexEntitiesFilter {
+	return RegexEntitiesFilter{regex: filterRegex}
+}
+
+func (rf RegexEntitiesFilter) filter(e Entry) bool {
+	return rf.regex.MatchString(e.String())
+}
+
+// DateEntitiesFilter filters fs events by matching ensuring ModTime is within the given date range.
+type DateEntitiesFilter struct {
+	from time.Time
+	to   time.Time
+}
+
+func NewDateEntitiesFilter(from, to time.Time) DateEntitiesFilter {
+	return DateEntitiesFilter{from: from, to: to}
+}
+
+func (df DateEntitiesFilter) filter(e Entry) bool {
+	if e.FileInfo.ModTime().Before(df.from) || e.FileInfo.ModTime().After(df.to) {
+		return true
 	}
-	return files
+	return false
+}
+
+// SkipMapEntitiesFilter filters fs events by ensuring the given file is NOT within the given map.
+type SkipMapEntitiesFilter struct {
+	skipMap map[string]struct{}
+}
+
+func NewSkipMapEntitiesFilter(skipMap map[string]struct{}) SkipMapEntitiesFilter {
+	return SkipMapEntitiesFilter{skipMap: skipMap}
+}
+
+func (smf SkipMapEntitiesFilter) filter(e Entry) bool {
+	if _, has := smf.skipMap[e.String()]; has {
+		return false
+	}
+	return true
+}
+
+// PermissionsEntitiesFilter filters fs events by ensuring the given file permissions are within the given range.
+type PermissionsEntitiesFilter struct {
+	min uint32
+	max uint32
+}
+
+func NewPermissionsEntitiesFilter(min, max uint32) PermissionsEntitiesFilter {
+	return PermissionsEntitiesFilter{min: min, max: max}
+}
+
+func (pf PermissionsEntitiesFilter) filter(e Entry) bool {
+	if e.FileInfo.Mode() < fs.FileMode(pf.min) || e.FileInfo.Mode() > fs.FileMode(pf.max) {
+		return false
+	}
+	return true
+}
+
+// SizeEntitiesFilter filters fs events by ensuring the given file within the given size range (in bytes).
+type SizeEntitiesFilter struct {
+	min int64
+	max int64
+}
+
+func NewSizeEntitiesFilter(min, max int64) SizeEntitiesFilter {
+	return SizeEntitiesFilter{min: min, max: max}
+}
+
+func (pf SizeEntitiesFilter) filter(e Entry) bool {
+	if e.FileInfo.IsDir() {
+		return true
+	} else if e.FileInfo.Size() < pf.min || e.FileInfo.Size() > pf.max {
+		return false
+	}
+	return true
 }
