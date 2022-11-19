@@ -103,6 +103,13 @@ func TestDateFilter(t *testing.T) {
 	accpet, err := dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	testFile, err = NewEntry("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+
+	accpet, err = dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.False(t, accpet)
 }
 
 func TestPermissionsFilter(t *testing.T) {
@@ -118,6 +125,13 @@ func TestPermissionsFilter(t *testing.T) {
 	accpet, err := permsFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	testFile, err = NewEntry("./testdata/one/file.mp4")
+	assert.NoError(t, err)
+
+	accpet, err = permsFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.False(t, accpet)
 }
 
 func TestSizeFilter(t *testing.T) {
@@ -130,4 +144,11 @@ func TestSizeFilter(t *testing.T) {
 	accpet, err := sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	testFile, err = NewEntry("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+
+	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.False(t, accpet)
 }
