@@ -151,4 +151,11 @@ func TestSizeFilter(t *testing.T) {
 	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.False(t, accpet)
+
+	testFile, err = NewEntry("./testdata/one")
+	assert.NoError(t, err)
+
+	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
 }
