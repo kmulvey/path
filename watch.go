@@ -9,7 +9,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files chan Entry) error {
+type WatchEvent struct {
+	Entry
+	fsnotify.Op
+}
+
+func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files chan WatchEvent) error {
 
 	var errors = make(chan error)
 	defer close(files)
@@ -44,7 +49,7 @@ func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files c
 						errors <- err
 						return
 					} else {
-						files <- e
+						files <- WatchEvent{Entry: e, Op: event.Op}
 					}
 				}
 

@@ -28,7 +28,7 @@ func TestWatchDir(t *testing.T) {
 		}
 	}
 
-	var files = make(chan Entry)
+	var files = make(chan WatchEvent)
 	var done = make(chan struct{})
 	var ctx, cancel = context.WithCancel(context.Background())
 	var regexFilter = NewRegexWatchFilter(regexp.MustCompile(".*.txt$"))
