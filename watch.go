@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"golang.org/x/exp/slices"
 )
 
 type WatchEvent struct {
@@ -14,7 +15,7 @@ type WatchEvent struct {
 	fsnotify.Op
 }
 
-func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files chan WatchEvent) error {
+func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filters ...WatchFilter) error {
 
 	var errors = make(chan error)
 	defer close(files)
@@ -29,7 +30,7 @@ func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files c
 	// Start listening for events.
 	go func() {
 		defer close(errors)
-
+	EventsLoop:
 		for {
 			select {
 			case <-ctx.Done():
@@ -39,18 +40,22 @@ func WatchDir(ctx context.Context, inputPath string, filter WatchFilter, files c
 				if !open {
 					return
 				}
-				var accepted, err = filter.filter(event)
-				if err != nil {
-					errors <- err
-					return
-				}
-				if accepted {
-					if e, err := NewEntry(event.Name); err != nil {
+				// try all the filter funcs
+				for _, fn := range filters {
+					var accepted, err = fn.filter(event)
+					if err != nil {
 						errors <- err
 						return
-					} else {
-						files <- WatchEvent{Entry: e, Op: event.Op}
 					}
+					if !accepted {
+						continue EventsLoop
+					}
+				}
+				if e, err := NewEntry(event.Name); err != nil {
+					errors <- err
+					return
+				} else {
+					files <- WatchEvent{Entry: e, Op: event.Op}
 				}
 
 			case err, open := <-watcher.Errors:
@@ -185,4 +190,20 @@ func (pf SizeWatchFilter) filter(event fsnotify.Event) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+// OpWatchFilter filters fs events by fsnotify.Op event type.
+type OpWatchFilter struct {
+	Ops []fsnotify.Op
+}
+
+func NewOpWatchFilter(ops ...fsnotify.Op) OpWatchFilter {
+	return OpWatchFilter{Ops: ops}
+}
+
+func (of OpWatchFilter) filter(event fsnotify.Event) (bool, error) {
+	if slices.Contains(of.Ops, event.Op) {
+		return true, nil
+	}
+	return false, nil
 }
