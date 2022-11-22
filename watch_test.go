@@ -43,7 +43,7 @@ func TestWatchDir(t *testing.T) {
 		close(done)
 	}()
 	go func() {
-		assert.NoError(t, WatchDir(ctx, dir, regexFilter, files))
+		assert.NoError(t, WatchDir(ctx, dir, files, regexFilter))
 	}()
 
 	time.Sleep(time.Millisecond * 250) // give time for WatchDir to start up
