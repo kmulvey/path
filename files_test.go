@@ -73,21 +73,22 @@ func TestListFilesWithFilter(t *testing.T) {
 	t.Parallel()
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$")
+	var suffixRegexFilter = NewRegexFilesFilter(suffixRegex)
 
-	files, err := ListFilesWithFilter("./testdata/", suffixRegex)
+	files, err := ListFiles("./testdata/", suffixRegexFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 
-	files, err = ListFilesWithFilter("./testdata/two", suffixRegex)
+	files, err = ListFiles("./testdata/two", suffixRegexFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(files))
 
-	files, err = ListFilesWithFilter("./testdata/one/file.mp3", suffixRegex)
+	files, err = ListFiles("./testdata/one/file.mp3", suffixRegexFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 	assert.True(t, suffixRegex.MatchString(files[0].FileInfo.Name()))
 
-	files, err = ListFilesWithFilter("a/b[", suffixRegex)
+	files, err = ListFiles("a/b[", suffixRegexFilter)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
 	assert.Equal(t, 0, len(files))
 }
@@ -99,13 +100,13 @@ func TestListFilesWithDateFilter(t *testing.T) {
 	var err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
 	assert.NoError(t, err)
 
-	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
-	files, err := ListFilesWithDateFilter("./testdata/", fromTime, time.Now())
+	var fromTimeFilter = NewDateFilesFilter(time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC), time.Now())
+	files, err := ListFiles("./testdata/", fromTimeFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 6, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
 
-	files, err = ListFilesWithDateFilter("a/b[", fromTime, time.Now())
+	files, err = ListFiles("a/b[", fromTimeFilter)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
 	assert.Equal(t, 0, len(files))
 }
@@ -113,17 +114,17 @@ func TestListFilesWithDateFilter(t *testing.T) {
 func TestListFilesWithMapFilter(t *testing.T) {
 	t.Parallel()
 
-	var skipMap = map[string]struct{}{
+	var skipMapFilter = NewSkipMapFilesFilter(map[string]struct{}{
 		"testdata/one/file.mp4": {},
 		"testdata/one/file.mp3": {},
-	}
+	})
 
-	files, err := ListFilesWithMapFilter("./testdata/", skipMap)
+	files, err := ListFiles("./testdata/", skipMapFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
 
-	files, err = ListFilesWithMapFilter("a/b[", skipMap)
+	files, err = ListFiles("a/b[", skipMapFilter)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
 	assert.Equal(t, 0, len(files))
 }
@@ -133,11 +134,13 @@ func TestListFilesWithPermissionsFilter(t *testing.T) {
 
 	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
 
-	var files, err = ListFilesWithPermissionsFilter("./testdata/", uint32(fs.ModePerm), uint32(fs.ModePerm))
+	var permsFilter = NewPermissionsFilesFilter(uint32(fs.ModePerm), uint32(fs.ModePerm))
+
+	var files, err = ListFiles("./testdata/", permsFilter)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
 
-	files, err = ListFilesWithPermissionsFilter("a/b[", uint32(fs.ModePerm), uint32(fs.ModePerm))
+	files, err = ListFiles("a/b[", permsFilter)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
 	assert.Equal(t, 0, len(files))
 }
@@ -145,11 +148,13 @@ func TestListFilesWithPermissionsFilter(t *testing.T) {
 func TestListFilesWithSizeFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = ListFilesWithSizeFilter("./testdata/", 4100, 6000)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(files))
+	var sizeFilter = NewSizeFilesFilter(4100, 6000)
 
-	files, err = ListFilesWithSizeFilter("a/b[", 4100, 6000)
+	var files, err = ListFiles("./testdata/", sizeFilter)
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(files))
+
+	files, err = ListFiles("a/b[", sizeFilter)
 	assert.Equal(t, "Error from pre-processing: syntax error in pattern", err.Error())
 	assert.Equal(t, 0, len(files))
 }

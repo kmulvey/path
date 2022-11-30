@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// preProcessInput expands ~, and un-globs input
+// preProcessInput expands ~, and un-globs input.
 func preProcessInput(inputPath string) ([]string, error) {
 
 	// expand ~ paths
@@ -27,7 +27,7 @@ func preProcessInput(inputPath string) ([]string, error) {
 	return filepath.Glob(inputPath)
 }
 
-// ListFiles recursively lists all files
+// ListFiles recursively lists all files with optional filters.
 func ListFiles(inputPath string, filters ...FilesFilter) ([]Entry, error) {
 	var allFiles []Entry
 
@@ -80,21 +80,21 @@ type FilesFilter interface {
 	filter(Entry) (bool, error)
 }
 
-// TrueFilesFilter always returns true, helpful for tests
+// TrueFilesFilter always returns true, helpful for tests.
 type TrueFilesFilter struct{}
 
 func (tf TrueFilesFilter) filter(entry Entry) (bool, error) {
 	return true, nil
 }
 
-// FalseFilesFilter always returns false, helpful for tests
+// FalseFilesFilter always returns false, helpful for tests.
 type FalseFilesFilter struct{}
 
 func (ff FalseFilesFilter) filter(entry Entry) (bool, error) {
 	return true, nil
 }
 
-// RegexFilesFilter filters fs events by matching file names to a given regex.
+// RegexFilesFilter filters Entry by matching file names to a given regex.
 type RegexFilesFilter struct {
 	regex *regexp.Regexp
 }
@@ -107,7 +107,7 @@ func (rf RegexFilesFilter) filter(entry Entry) (bool, error) {
 	return rf.regex.MatchString(entry.String()), nil
 }
 
-// DateFilesFilter filters fs events by matching ensuring ModTime is within the given date range.
+// DateFilesFilter filters Entry by matching ensuring ModTime is within the given date range.
 type DateFilesFilter struct {
 	from time.Time
 	to   time.Time
@@ -119,12 +119,12 @@ func NewDateFilesFilter(from, to time.Time) DateFilesFilter {
 
 func (df DateFilesFilter) filter(entry Entry) (bool, error) {
 	if entry.FileInfo.ModTime().Before(df.from) || entry.FileInfo.ModTime().After(df.to) {
-		return true, nil
+		return false, nil
 	}
-	return false, nil
+	return true, nil
 }
 
-// SkipMapFilesFilter filters fs events by ensuring the given file is NOT within the given map.
+// SkipMapFilesFilter filters Entry by ensuring the given file is NOT within the given map.
 type SkipMapFilesFilter struct {
 	skipMap map[string]struct{}
 }
@@ -140,7 +140,7 @@ func (smf SkipMapFilesFilter) filter(entry Entry) (bool, error) {
 	return true, nil
 }
 
-// PermissionsFilesFilter filters fs events by ensuring the given file permissions are within the given range.
+// PermissionsFilesFilter filters Entry by ensuring the given file permissions are within the given range.
 type PermissionsFilesFilter struct {
 	min uint32
 	max uint32
@@ -157,7 +157,8 @@ func (pf PermissionsFilesFilter) filter(entry Entry) (bool, error) {
 	return true, nil
 }
 
-// SizeFilesFilter filters fs events by ensuring the given file within the given size range (in bytes).
+// SizeFilesFilter filters Entry by ensuring the given file within the given size range (in bytes).
+// Directories are always returned true.
 type SizeFilesFilter struct {
 	min int64
 	max int64
