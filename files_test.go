@@ -166,8 +166,11 @@ func TestOnlyDirs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, Contains(files, "./testdata/"))
 
-	files = OnlyDirs(files)
-	assert.Equal(t, 2, len(files))
+	var dirs = OnlyDirs(files)
+	assert.Equal(t, 2, len(dirs))
+	assert.True(t, Contains(dirs, "testdata/one"))
+	assert.True(t, Contains(dirs, "testdata/two"))
+	assert.False(t, Contains(dirs, "testdata/one/file.mp3"))
 }
 
 func TestOnlyFiles(t *testing.T) {
@@ -177,8 +180,11 @@ func TestOnlyFiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, Contains(files, "./testdata/"))
 
-	files = OnlyFiles(files)
-	assert.Equal(t, 5, len(files))
+	var dirs = OnlyFiles(files)
+	assert.Equal(t, 5, len(dirs))
+	assert.False(t, Contains(dirs, "testdata/one"))
+	assert.False(t, Contains(dirs, "testdata/two"))
+	assert.True(t, Contains(dirs, "testdata/one/file.mp3"))
 }
 
 func TestOnlyNames(t *testing.T) {

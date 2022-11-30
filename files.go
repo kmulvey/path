@@ -27,7 +27,7 @@ func preProcessInput(inputPath string) ([]string, error) {
 	return filepath.Glob(inputPath)
 }
 
-// ListFiles recursively lists all files with optional filters.
+// ListFiles recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
 func ListFiles(inputPath string, filters ...FilesFilter) ([]Entry, error) {
 	var allFiles []Entry
 
