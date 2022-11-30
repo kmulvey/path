@@ -86,20 +86,6 @@ type WatchFilter interface {
 	filter(fsnotify.Event) (bool, error)
 }
 
-// TrueWatchFilter always returns true, helpful for tests.
-type TrueWatchFilter struct{}
-
-func (nf TrueWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	return true, nil
-}
-
-// FalseWatchFilter always returns false, helpful for tests.
-type FalseWatchFilter struct{}
-
-func (ff FalseWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	return false, nil
-}
-
 // RegexWatchFilter filters fs events by matching file names to a given regex.
 type RegexWatchFilter struct {
 	regex *regexp.Regexp

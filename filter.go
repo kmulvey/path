@@ -23,13 +23,6 @@ type EntriesFilter interface {
 	filter(Entry) bool
 }
 
-// TrueEntriesFilter always returns true, useful for testing.
-type TrueEntriesFilter struct{}
-
-func (nf TrueEntriesFilter) filter(e Entry) bool {
-	return true
-}
-
 // RegexEntitiesFilter filters fs events by matching file names to a given regex.
 type RegexEntitiesFilter struct {
 	regex *regexp.Regexp

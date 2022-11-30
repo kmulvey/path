@@ -59,15 +59,6 @@ func TestWatchDir(t *testing.T) {
 	assert.NoError(t, os.RemoveAll(dir))
 }
 
-func TestNoopWatchWatchFilter(t *testing.T) {
-	t.Parallel()
-
-	var noop = TrueWatchFilter{}
-	var accpet, err = noop.filter(fsnotify.Event{Name: "/path/to/file"})
-	assert.NoError(t, err)
-	assert.True(t, accpet)
-}
-
 func TestSkipMapWatchFilter(t *testing.T) {
 	t.Parallel()
 

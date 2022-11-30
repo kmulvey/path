@@ -80,20 +80,6 @@ type FilesFilter interface {
 	filter(Entry) (bool, error)
 }
 
-// TrueFilesFilter always returns true, helpful for tests.
-type TrueFilesFilter struct{}
-
-func (tf TrueFilesFilter) filter(entry Entry) (bool, error) {
-	return true, nil
-}
-
-// FalseFilesFilter always returns false, helpful for tests.
-type FalseFilesFilter struct{}
-
-func (ff FalseFilesFilter) filter(entry Entry) (bool, error) {
-	return false, nil
-}
-
 // RegexFilesFilter filters Entry by matching file names to a given regex.
 type RegexFilesFilter struct {
 	regex *regexp.Regexp
