@@ -16,8 +16,7 @@ type Entry struct {
 	AbsolutePath string
 }
 
-// NewEntry takes a filepath and expands ~ as well as other relative paths to absolute
-// and stats them returning Entry.
+// NewEntry takes a filepath and expands ~ as well as other relative paths to absolute and stats them returning Entry.
 func NewEntry(inputPath string) (Entry, error) {
 
 	// expand ~ paths
