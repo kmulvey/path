@@ -10,11 +10,13 @@ import (
 	"golang.org/x/exp/slices"
 )
 
+// WatchEvent is a wrapper for Entry and fsnotify.Op.
 type WatchEvent struct {
 	Entry
 	fsnotify.Op
 }
 
+// WatchDir will watch a directory indefinitely for changes and publish them on the given files channel with optional filters.
 func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filters ...WatchFilter) error {
 
 	var errors = make(chan error)
@@ -120,9 +122,9 @@ func (df DateWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	}
 
 	if entry.FileInfo.ModTime().Before(df.from) || entry.FileInfo.ModTime().After(df.to) {
-		return true, nil
+		return false, nil
 	}
-	return false, nil
+	return true, nil
 }
 
 // SkipMapWatchFilter filters fs events by ensuring the given file is NOT within the given map.
@@ -169,6 +171,7 @@ func (pf PermissionsWatchFilter) filter(event fsnotify.Event) (bool, error) {
 }
 
 // SizeWatchFilter filters fs events by ensuring the given file within the given size range (in bytes).
+// Directories are always returned true.
 type SizeWatchFilter struct {
 	min int64
 	max int64

@@ -102,14 +102,14 @@ func TestDateWatchFilter(t *testing.T) {
 	var dateFilter = NewDateWatchFilter(fromTime, time.Now())
 	accpet, err := dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
-	assert.True(t, accpet)
+	assert.False(t, accpet)
 
 	testFile, err = NewEntry("./testdata/one/file.mp3")
 	assert.NoError(t, err)
 
 	accpet, err = dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
-	assert.False(t, accpet)
+	assert.True(t, accpet)
 }
 
 func TestPermissionsWatchFilter(t *testing.T) {
