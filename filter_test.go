@@ -35,16 +35,6 @@ func TestFilterEntities(t *testing.T) {
 	}
 }
 
-func TestNoopEntitiesFilter(t *testing.T) {
-	t.Parallel()
-
-	var testFile, err = NewEntry("./testdata/one/file.mp4")
-	assert.NoError(t, err)
-
-	var noop = NoopEntriesFilter{}
-	assert.True(t, noop.filter(testFile))
-}
-
 func TestDateEntitiesFilter(t *testing.T) {
 	t.Parallel()
 

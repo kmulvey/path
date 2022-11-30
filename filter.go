@@ -23,10 +23,10 @@ type EntriesFilter interface {
 	filter(Entry) bool
 }
 
-// NoopEntriesFilter always returns true, useful for testing.
-type NoopEntriesFilter struct{}
+// TrueEntriesFilter always returns true, useful for testing.
+type TrueEntriesFilter struct{}
 
-func (nf NoopEntriesFilter) filter(e Entry) bool {
+func (nf TrueEntriesFilter) filter(e Entry) bool {
 	return true
 }
 
