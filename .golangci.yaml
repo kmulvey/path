@@ -22,7 +22,7 @@ linters:
     - nilerr
     - paralleltest
     - prealloc
-    - unparam
+      #    - unparam  https://github.com/mvdan/unparam/issues/52
     - usestdlibvars
     - wastedassign
 linters-settings:
