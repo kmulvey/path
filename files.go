@@ -91,7 +91,7 @@ func (tf TrueFilesFilter) filter(entry Entry) (bool, error) {
 type FalseFilesFilter struct{}
 
 func (ff FalseFilesFilter) filter(entry Entry) (bool, error) {
-	return true, nil
+	return false, nil
 }
 
 // RegexFilesFilter filters Entry by matching file names to a given regex.
