@@ -159,3 +159,19 @@ func TestSizeWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 }
+
+func TestOpWatchFilter(t *testing.T) {
+	t.Parallel()
+
+	var testFile, err = NewEntry("./testdata/one/file.mp4")
+	assert.NoError(t, err)
+
+	var opFilter = NewOpWatchFilter(fsnotify.Create)
+	accpet, err := opFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath, Op: fsnotify.Create})
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+
+	accpet, err = opFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath, Op: fsnotify.Remove})
+	assert.NoError(t, err)
+	assert.False(t, accpet)
+}
