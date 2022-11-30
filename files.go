@@ -28,7 +28,7 @@ func preProcessInput(inputPath string) ([]string, error) {
 }
 
 // ListFiles recursively lists all files
-func ListFiles(inputPath string) ([]Entry, error) {
+func ListFiles(inputPath string, filters ...FilesFilter) ([]Entry, error) {
 	var allFiles []Entry
 
 	var globFiles, err = preProcessInput(inputPath)
@@ -49,7 +49,21 @@ func ListFiles(inputPath string) ([]Entry, error) {
 			if gf == path && stat.IsDir() {
 				return nil
 			}
-			allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
+
+			var entry = Entry{AbsolutePath: path, FileInfo: info}
+
+			// try all the filter funcs
+			for _, fn := range filters {
+				var accepted, err = fn.filter(entry)
+				if err != nil {
+					return err
+				}
+				if !accepted {
+					return nil
+				}
+			}
+
+			allFiles = append(allFiles, entry)
 			return nil
 		})
 		if err != nil {
@@ -59,172 +73,105 @@ func ListFiles(inputPath string) ([]Entry, error) {
 	return allFiles, nil
 }
 
-// ListFilesWithFilter recursively lists all files, filtering the names based on the given regex.
-func ListFilesWithFilter(inputPath string, filterRegex *regexp.Regexp) ([]Entry, error) {
-	var allFiles []Entry
+//////////////////////////////////////////////////////////////////
 
-	var globFiles, err = preProcessInput(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
-	}
-
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
-			}
-			if gf == path && stat.IsDir() {
-				return nil
-			}
-			if filterRegex.MatchString(strings.ToLower(info.Name())) {
-				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return allFiles, nil
+// FilesFilter interface facilitates filtering of file events.
+type FilesFilter interface {
+	filter(Entry) (bool, error)
 }
 
-// ListFilesWithDateFilter recursively lists all files, filtering based on modtime.
-func ListFilesWithDateFilter(inputPath string, beginTime, endTime time.Time) ([]Entry, error) {
-	var allFiles []Entry
+// TrueFilesFilter always returns true, helpful for tests
+type TrueFilesFilter struct{}
 
-	var globFiles, err = preProcessInput(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
-	}
-
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
-			}
-			if gf == path && stat.IsDir() {
-				return nil
-			}
-			if info.ModTime().After(beginTime) && info.ModTime().Before(endTime) {
-				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return allFiles, nil
+func (tf TrueFilesFilter) filter(entry Entry) (bool, error) {
+	return true, nil
 }
 
-// ListFilesWithMapFilter recursively lists all files skipping those that exist in the skip map.
-func ListFilesWithMapFilter(inputPath string, skipMap map[string]struct{}) ([]Entry, error) {
-	var allFiles []Entry
+// FalseFilesFilter always returns false, helpful for tests
+type FalseFilesFilter struct{}
 
-	var globFiles, err = preProcessInput(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
-	}
-
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
-			}
-			if gf == path && stat.IsDir() {
-				return nil
-			}
-			if _, has := skipMap[path]; !has {
-				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return allFiles, nil
+func (ff FalseFilesFilter) filter(entry Entry) (bool, error) {
+	return true, nil
 }
 
-// ListFilesWithPermissionsFilter recursively lists all files skipping those that are not in the given range, inclusive.
-func ListFilesWithPermissionsFilter(inputPath string, min, max uint32) ([]Entry, error) {
-	var allFiles []Entry
-
-	var globFiles, err = preProcessInput(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
-	}
-
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
-			}
-			if gf == path && stat.IsDir() {
-				return nil
-			}
-			if info.Mode() >= fs.FileMode(min) && info.Mode() <= fs.FileMode(max) {
-				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
-	}
-	return allFiles, nil
+// RegexFilesFilter filters fs events by matching file names to a given regex.
+type RegexFilesFilter struct {
+	regex *regexp.Regexp
 }
 
-// ListFilesWithSizeFilter recursively lists all files skipping those that are not in the given range, inclusive.
-func ListFilesWithSizeFilter(inputPath string, min, max int64) ([]Entry, error) {
-	var allFiles []Entry
+func NewRegexFilesFilter(filterRegex *regexp.Regexp) RegexFilesFilter {
+	return RegexFilesFilter{regex: filterRegex}
+}
 
-	var globFiles, err = preProcessInput(inputPath)
-	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
-	}
+func (rf RegexFilesFilter) filter(entry Entry) (bool, error) {
+	return rf.regex.MatchString(entry.String()), nil
+}
 
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
-			if err != nil {
-				return fmt.Errorf("Walk error in dir: %q, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
-			}
-			if gf == path && stat.IsDir() {
-				return nil
-			}
-			if info.Size() >= min && info.Size() <= max {
-				allFiles = append(allFiles, Entry{AbsolutePath: path, FileInfo: info})
-			}
-			return nil
-		})
-		if err != nil {
-			return nil, err
-		}
+// DateFilesFilter filters fs events by matching ensuring ModTime is within the given date range.
+type DateFilesFilter struct {
+	from time.Time
+	to   time.Time
+}
+
+func NewDateFilesFilter(from, to time.Time) DateFilesFilter {
+	return DateFilesFilter{from: from, to: to}
+}
+
+func (df DateFilesFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.ModTime().Before(df.from) || entry.FileInfo.ModTime().After(df.to) {
+		return true, nil
 	}
-	return allFiles, nil
+	return false, nil
+}
+
+// SkipMapFilesFilter filters fs events by ensuring the given file is NOT within the given map.
+type SkipMapFilesFilter struct {
+	skipMap map[string]struct{}
+}
+
+func NewSkipMapFilesFilter(skipMap map[string]struct{}) SkipMapFilesFilter {
+	return SkipMapFilesFilter{skipMap: skipMap}
+}
+
+func (smf SkipMapFilesFilter) filter(entry Entry) (bool, error) {
+	if _, has := smf.skipMap[entry.AbsolutePath]; has {
+		return false, nil
+	}
+	return true, nil
+}
+
+// PermissionsFilesFilter filters fs events by ensuring the given file permissions are within the given range.
+type PermissionsFilesFilter struct {
+	min uint32
+	max uint32
+}
+
+func NewPermissionsFilesFilter(min, max uint32) PermissionsFilesFilter {
+	return PermissionsFilesFilter{min: min, max: max}
+}
+
+func (pf PermissionsFilesFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.Mode() < fs.FileMode(pf.min) || entry.FileInfo.Mode() > fs.FileMode(pf.max) {
+		return false, nil
+	}
+	return true, nil
+}
+
+// SizeFilesFilter filters fs events by ensuring the given file within the given size range (in bytes).
+type SizeFilesFilter struct {
+	min int64
+	max int64
+}
+
+func NewSizeFilesFilter(min, max int64) SizeFilesFilter {
+	return SizeFilesFilter{min: min, max: max}
+}
+
+func (pf SizeFilesFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return true, nil
+	} else if entry.FileInfo.Size() < pf.min || entry.FileInfo.Size() > pf.max {
+		return false, nil
+	}
+	return true, nil
 }
