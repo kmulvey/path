@@ -114,10 +114,7 @@ func NewDirEntitiesFilter() DirEntitiesFilter {
 }
 
 func (df DirEntitiesFilter) filter(entry Entry) bool {
-	if entry.FileInfo.IsDir() {
-		return true
-	}
-	return false
+	return entry.FileInfo.IsDir()
 }
 
 // FileEntitiesFilter only returns files.
@@ -129,8 +126,5 @@ func NewFileEntitiesFilter() FileEntitiesFilter {
 }
 
 func (ff FileEntitiesFilter) filter(entry Entry) bool {
-	if entry.FileInfo.IsDir() {
-		return false
-	}
-	return true
+	return !entry.FileInfo.IsDir()
 }

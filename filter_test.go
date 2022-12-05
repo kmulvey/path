@@ -124,15 +124,25 @@ func TestSizeEntitiesFilter(t *testing.T) {
 func TestDirEntitiesFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/", NewDirEntitiesFilter())
+	var filter = NewDirEntitiesFilter()
+	var testFile, err = NewEntry("./testdata/one")
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(files))
+	assert.True(t, filter.filter(testFile))
+
+	testFile, err = NewEntry("./testdata/one/file.mp3")
+	assert.NoError(t, err)
+	assert.False(t, filter.filter(testFile))
 }
 
 func TestFileEntitiesFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/", NewFileEntitiesFilter())
+	var filter = NewFileEntitiesFilter()
+	var testFile, err = NewEntry("./testdata/one/file.mp3")
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
+	assert.True(t, filter.filter(testFile))
+
+	testFile, err = NewEntry("./testdata/one/")
+	assert.NoError(t, err)
+	assert.False(t, filter.filter(testFile))
 }
