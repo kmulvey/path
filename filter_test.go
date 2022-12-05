@@ -13,7 +13,7 @@ import (
 func TestFilterEntities(t *testing.T) {
 	t.Parallel()
 
-	var files, err = ListFiles("./testdata/")
+	var files, err = List("./testdata/")
 	assert.NoError(t, err)
 	assert.Equal(t, 7, len(files))
 	assert.False(t, Contains(files, "./testdata/"))

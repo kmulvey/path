@@ -35,7 +35,7 @@ func (p *Path) Set(s string) error {
 
 	s = filepath.Clean(s)
 
-	var files, err = ListFiles(s)
+	var files, err = List(s)
 	if err != nil {
 		return err
 	}
