@@ -62,28 +62,6 @@ func Contains(input []Entry, needle string) bool {
 	return false
 }
 
-// OnlyDirs filters an input slice by returning a slice containing only directories.
-func OnlyDirs(input []Entry) []Entry {
-	var result []Entry
-	for _, entry := range input {
-		if entry.FileInfo.IsDir() {
-			result = append(result, entry)
-		}
-	}
-	return result
-}
-
-// OnlyFiles filters an input slice by returning a slice containing only files.
-func OnlyFiles(input []Entry) []Entry {
-	var result []Entry
-	for _, entry := range input {
-		if !entry.FileInfo.IsDir() {
-			result = append(result, entry)
-		}
-	}
-	return result
-}
-
 // OnlyNames returns a slice of absolute paths (strings) from a given Entry slice.
 func OnlyNames(input []Entry) []string {
 	var result = make([]string, len(input))
