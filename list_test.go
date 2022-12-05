@@ -159,45 +159,18 @@ func TestListFilesWithSizeFilter(t *testing.T) {
 	assert.Equal(t, 0, len(files))
 }
 
-func TestOnlyDirs(t *testing.T) {
+func TestListFilesWithDirFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/")
+	var files, err = List("./testdata/", NewDirListFilter())
 	assert.NoError(t, err)
-	assert.False(t, Contains(files, "./testdata/"))
-
-	var dirs = OnlyDirs(files)
-	assert.Equal(t, 2, len(dirs))
-	assert.True(t, Contains(dirs, "testdata/one"))
-	assert.True(t, Contains(dirs, "testdata/two"))
-	assert.False(t, Contains(dirs, "testdata/one/file.mp3"))
+	assert.Equal(t, 2, len(files))
 }
 
-func TestOnlyFiles(t *testing.T) {
+func TestListFilesWithFileFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/")
+	var files, err = List("./testdata/", NewFileListFilter())
 	assert.NoError(t, err)
-	assert.False(t, Contains(files, "./testdata/"))
-
-	var dirs = OnlyFiles(files)
-	assert.Equal(t, 5, len(dirs))
-	assert.False(t, Contains(dirs, "testdata/one"))
-	assert.False(t, Contains(dirs, "testdata/two"))
-	assert.True(t, Contains(dirs, "testdata/one/file.mp3"))
-}
-
-func TestOnlyNames(t *testing.T) {
-	t.Parallel()
-
-	var files, err = List("./testdata/")
-	assert.NoError(t, err)
-	assert.False(t, Contains(files, "./testdata/"))
-
-	var strings = OnlyNames(files)
-	assert.Equal(t, 7, len(strings))
-
-	for _, str := range strings {
-		assert.IsType(t, "", str)
-	}
+	assert.Equal(t, 5, len(files))
 }

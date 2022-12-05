@@ -162,3 +162,33 @@ func (pf SizeListFilter) filter(entry Entry) (bool, error) {
 	}
 	return true, nil
 }
+
+// DirListFilter only returns sub directories of the target.
+type DirListFilter struct {
+}
+
+func NewDirListFilter() DirListFilter {
+	return DirListFilter{}
+}
+
+func (df DirListFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+// FileListFilter only returns files.
+type FileListFilter struct {
+}
+
+func NewFileListFilter() FileListFilter {
+	return FileListFilter{}
+}
+
+func (ff FileListFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return false, nil
+	}
+	return true, nil
+}
