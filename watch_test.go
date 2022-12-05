@@ -166,3 +166,19 @@ func TestOpWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, accpet)
 }
+
+func TestDirWatchFilter(t *testing.T) {
+	t.Parallel()
+
+	var files, err = List("./testdata/", NewDirWatchFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
+}
+
+func TestFileWatchFilter(t *testing.T) {
+	t.Parallel()
+
+	var files, err = List("./testdata/", NewFileWatchFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 5, len(files))
+}

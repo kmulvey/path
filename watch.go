@@ -204,3 +204,33 @@ func (of OpWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	}
 	return false, nil
 }
+
+// DirWatchFilter only returns sub directories of the target.
+type DirWatchFilter struct {
+}
+
+func NewDirWatchFilter() DirWatchFilter {
+	return DirWatchFilter{}
+}
+
+func (df DirWatchFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+// FileWatchFilter only returns files.
+type FileWatchFilter struct {
+}
+
+func NewFileWatchFilter() FileWatchFilter {
+	return FileWatchFilter{}
+}
+
+func (ff FileWatchFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return false, nil
+	}
+	return true, nil
+}
