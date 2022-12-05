@@ -104,3 +104,33 @@ func (pf SizeEntitiesFilter) filter(e Entry) bool {
 	}
 	return true
 }
+
+// DirEntitiesFilter only returns sub directories of the target.
+type DirEntitiesFilter struct {
+}
+
+func NewDirEntitiesFilter() DirEntitiesFilter {
+	return DirEntitiesFilter{}
+}
+
+func (df DirEntitiesFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return true, nil
+	}
+	return false, nil
+}
+
+// FileEntitiesFilter only returns files.
+type FileEntitiesFilter struct {
+}
+
+func NewFileEntitiesFilter() FileEntitiesFilter {
+	return FileEntitiesFilter{}
+}
+
+func (ff FileEntitiesFilter) filter(entry Entry) (bool, error) {
+	if entry.FileInfo.IsDir() {
+		return false, nil
+	}
+	return true, nil
+}

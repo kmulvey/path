@@ -120,3 +120,19 @@ func TestSizeEntitiesFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, sizeFilter.filter(testFile))
 }
+
+func TestDirEntitiesFilter(t *testing.T) {
+	t.Parallel()
+
+	var files, err = List("./testdata/", NewDirEntitiesFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
+}
+
+func TestFileEntitiesFilter(t *testing.T) {
+	t.Parallel()
+
+	var files, err = List("./testdata/", NewFileEntitiesFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 5, len(files))
+}
