@@ -46,11 +46,11 @@ func NewDateEntitiesFilter(from, to time.Time) DateEntitiesFilter {
 	return DateEntitiesFilter{from: from, to: to}
 }
 
-func (df DateEntitiesFilter) filter(e Entry) bool {
-	if e.FileInfo.ModTime().Before(df.from) || e.FileInfo.ModTime().After(df.to) {
-		return true
+func (df DateEntitiesFilter) filter(entry Entry) bool {
+	if entry.FileInfo.ModTime().Before(df.from) || entry.FileInfo.ModTime().After(df.to) {
+		return false
 	}
-	return false
+	return true
 }
 
 // SkipMapEntitiesFilter filters fs events by ensuring the given file is NOT within the given map.

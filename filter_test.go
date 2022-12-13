@@ -48,12 +48,12 @@ func TestDateEntitiesFilter(t *testing.T) {
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
 	var dateFilter = NewDateEntitiesFilter(fromTime, time.Now())
-	assert.True(t, dateFilter.filter(testFile))
+	assert.False(t, dateFilter.filter(testFile))
 
 	testFile, err = NewEntry("./testdata/one/file.mp3")
 	assert.NoError(t, err)
 
-	assert.False(t, dateFilter.filter(testFile))
+	assert.True(t, dateFilter.filter(testFile))
 }
 
 func TestSkipMapEntitiesFilter(t *testing.T) {
