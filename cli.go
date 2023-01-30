@@ -31,7 +31,8 @@ func (p *Path) Get() []Entry {
 
 // Set fulfils the flag.Value interface https://pkg.go.dev/flag#Value.
 func (p *Path) Set(s string) error {
-	p.GivenInput = s
+
+	p.GivenInput = filepath.Clean(strings.TrimSpace(s))
 
 	s = filepath.Clean(s)
 

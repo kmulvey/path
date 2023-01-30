@@ -14,13 +14,16 @@ import (
 type Entry struct {
 	FileInfo     fs.FileInfo
 	AbsolutePath string
+	Globs        []Entry // only populated from glob'd input
 }
 
 // NewEntry takes a filepath and expands ~ as well as other relative paths to absolute and stats them returning Entry.
 func NewEntry(inputPath string) (Entry, error) {
 
+	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+
 	// expand ~ paths
-	if strings.Contains(inputPath, "~") {
+	if strings.HasPrefix(inputPath, "~") {
 		user, err := user.Current()
 		if err != nil {
 			return Entry{}, fmt.Errorf("error getting current user, error: %s", err.Error())
@@ -39,6 +42,19 @@ func NewEntry(inputPath string) (Entry, error) {
 		stat, err = os.Stat(abs)
 		if err != nil {
 			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
+		}
+	} else {
+		filenames, err := unglobInput(abs)
+		if err != nil {
+			return Entry{}, fmt.Errorf("error unglobbing input: %s, error: %w", abs, err)
+		}
+
+		var globs = make([]Entry, len(filenames))
+		for i, file := range filenames {
+			globs[i], err = NewEntry(file)
+			if err != nil {
+				return Entry{}, fmt.Errorf("error creating unglobbed entries, given input: %s, current file: %s, error: %w", abs, file, err)
+			}
 		}
 	}
 
@@ -69,4 +85,22 @@ func OnlyNames(input []Entry) []string {
 		result[i] = entry.String()
 	}
 	return result
+}
+
+// unglobInput expands ~, and un-globs input.
+func unglobInput(inputPath string) ([]string, error) {
+
+	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+
+	// expand ~ paths
+	if strings.HasPrefix(inputPath, "~") {
+		user, err := user.Current()
+		if err != nil {
+			return nil, fmt.Errorf("error getting current user, error: %s", err.Error())
+		}
+		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
+	}
+
+	// try un-globing the input
+	return filepath.Glob(inputPath)
 }
