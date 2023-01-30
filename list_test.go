@@ -12,18 +12,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPreProcessInput(t *testing.T) {
-	t.Parallel()
-
-	var files, err = preProcessInput("./testdata/*")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(files))
-
-	files, err = preProcessInput("a/b[")
-	assert.Equal(t, "syntax error in pattern", err.Error())
-	assert.Equal(t, 0, len(files))
-}
-
 func TestListFiles(t *testing.T) {
 	t.Parallel()
 

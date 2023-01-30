@@ -14,9 +14,28 @@ func TestOnlyNames(t *testing.T) {
 	assert.False(t, Contains(files, "./testdata/"))
 
 	var strings = OnlyNames(files)
-	assert.Equal(t, 7, len(strings))
+	assert.Equal(t, 8, len(strings))
 
 	for _, str := range strings {
 		assert.IsType(t, "", str)
 	}
+}
+
+func TestUnglobInput(t *testing.T) {
+	t.Parallel()
+
+	var files, err = unglobInput("./testdata/*")
+	assert.NoError(t, err)
+	assert.Equal(t, 3, len(files))
+
+	files, err = unglobInput("a/b[")
+	assert.Equal(t, "syntax error in pattern", err.Error())
+	assert.Equal(t, 0, len(files))
+}
+func TestCrazyFileName(t *testing.T) {
+	t.Parallel()
+
+	var files, err = unglobInput("./testdata/ogCGs91VSA5FBjJdgE8eeLSngbebPXyDCICZ7I~tplv-f5insbecw7-1 720 720.jpg")
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(files))
 }
