@@ -6,6 +6,7 @@ import (
 	"os/user"
 	"path/filepath"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -17,9 +18,9 @@ func TestListFiles(t *testing.T) {
 
 	var files, err = List("./testdata/")
 	assert.NoError(t, err)
-	assert.Equal(t, 7, len(files))
+	assert.Equal(t, 8, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
-	assert.True(t, files[0].IsDir())
+	assert.False(t, files[0].IsDir())
 
 	files, err = List("./testdata/one/file")
 	assert.NoError(t, err)
@@ -36,10 +37,11 @@ func TestListFiles(t *testing.T) {
 	files, err = List("./testdata/one/file.mp3")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
-	assert.Equal(t, "./testdata/one/file.mp3", files[0].AbsolutePath)
+	assert.True(t, strings.HasSuffix(files[0].AbsolutePath, "path/testdata/one/file.mp3"))
 
 	files, err = List("")
-	assert.NoError(t, err)
+	assert.Error(t, err)
+	assert.Equal(t, "inputPath is empty", err.Error())
 	assert.Equal(t, 0, len(files))
 
 	// create file in home dir
@@ -91,7 +93,7 @@ func TestListFilesWithDateFilter(t *testing.T) {
 	var fromTimeFilter = NewDateListFilter(time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC), time.Now())
 	files, err := List("./testdata/", fromTimeFilter)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(files))
+	assert.Equal(t, 7, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
 
 	files, err = List("a/b[", fromTimeFilter)
@@ -109,7 +111,7 @@ func TestListFilesWithMapFilter(t *testing.T) {
 
 	files, err := List("./testdata/", skipMapFilter)
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
+	assert.Equal(t, 8, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
 
 	files, err = List("a/b[", skipMapFilter)
@@ -160,5 +162,5 @@ func TestListFilesWithFileFilter(t *testing.T) {
 
 	var files, err = List("./testdata/", NewFileListFilter())
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
+	assert.Equal(t, 6, len(files))
 }

@@ -1,6 +1,7 @@
 package path
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -13,6 +14,10 @@ import (
 // List recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
 func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 	var allFiles []Entry
+
+	if strings.TrimSpace(inputPath) == "" {
+		return nil, errors.New("inputPath is empty")
+	}
 
 	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
 
@@ -35,7 +40,12 @@ func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 				return nil
 			}
 
-			var entry = Entry{AbsolutePath: path, FileInfo: info}
+			abs, err := filepath.Abs(filepath.Clean(path))
+			if err != nil {
+				return fmt.Errorf("error getting abs path for file: %s, error: %w", path, err)
+			}
+
+			var entry = Entry{AbsolutePath: abs, FileInfo: info}
 
 			// try all the filter funcs
 			for _, fn := range filters {
