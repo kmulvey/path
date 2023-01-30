@@ -10,6 +10,8 @@ import (
 	"strings"
 )
 
+var globRegex = regexp.MustCompile(`\*|\!|\?|\[|\]`)
+
 // Entry is the currency of this package.
 type Entry struct {
 	FileInfo     fs.FileInfo
@@ -37,8 +39,8 @@ func NewEntry(inputPath string) (Entry, error) {
 	}
 
 	var stat fs.FileInfo
-	var hasGlob = regexp.MustCompile(`\*|\!|\?|\[|\]`)
-	if !hasGlob.MatchString(abs) {
+
+	if !globRegex.MatchString(abs) {
 		stat, err = os.Stat(abs)
 		if err != nil {
 			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
