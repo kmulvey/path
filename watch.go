@@ -2,8 +2,11 @@ package path
 
 import (
 	"context"
+	"fmt"
 	"io/fs"
+	"path/filepath"
 	"regexp"
+	"strings"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -17,21 +20,32 @@ type WatchEvent struct {
 }
 
 // WatchDir will watch a directory indefinitely for changes and publish them on the given files channel with optional filters.
-func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filters ...WatchFilter) error {
+func WatchDir(ctx context.Context, inputPath string, recursive bool, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
 
-	var errors = make(chan error)
+	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+
+	var inputEntry, err = NewEntry(inputPath)
+	if err != nil {
+		errors <- fmt.Errorf("error with inputPath: %w", err)
+		return
+	}
+
 	defer close(files)
+	defer close(errors)
 
 	// Create new watcher.
-	var watcher, err = fsnotify.NewWatcher()
+	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		return err
+		errors <- fmt.Errorf("error creating NewWatcher: %w", err)
+		return
 	}
 	defer watcher.Close()
 
 	// Start listening for events.
+	var wait = make(chan struct{})
 	go func() {
-		defer close(errors)
+		defer close(wait)
+
 	EventsLoop:
 		for {
 			select {
@@ -47,7 +61,6 @@ func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filt
 					var accepted, err = fn.filter(event)
 					if err != nil {
 						errors <- err
-						return
 					}
 					if !accepted {
 						continue EventsLoop
@@ -55,7 +68,6 @@ func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filt
 				}
 				if e, err := NewEntry(event.Name); err != nil {
 					errors <- err
-					return
 				} else {
 					files <- WatchEvent{Entry: e, Op: event.Op}
 				}
@@ -65,18 +77,32 @@ func WatchDir(ctx context.Context, inputPath string, files chan WatchEvent, filt
 					return
 				}
 				errors <- err
-				return
 			}
 		}
 	}()
 
-	// Add a path.
-	err = watcher.Add(inputPath)
-	if err != nil {
-		return err
+	var entries []Entry
+	if recursive {
+		entries, err = List(inputPath, NewDirListFilter())
+		if err != nil {
+			errors <- fmt.Errorf("error adding path to watcher: %w", err)
+			return
+		}
+		entries = append(entries, inputEntry)
+	} else {
+		entries = []Entry{inputEntry}
 	}
 
-	return <-errors
+	// Add paths.
+	for _, dir := range entries {
+		err = watcher.Add(dir.AbsolutePath)
+		if err != nil {
+			errors <- fmt.Errorf("error adding path to watcher: %w", err)
+			return
+		}
+	}
+
+	<-wait
 }
 
 //////////////////////////////////////////////////////////////////
