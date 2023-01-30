@@ -4,34 +4,19 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/user"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
 )
 
-// preProcessInput expands ~, and un-globs input.
-func preProcessInput(inputPath string) ([]string, error) {
-
-	// expand ~ paths
-	if strings.Contains(inputPath, "~") {
-		user, err := user.Current()
-		if err != nil {
-			return nil, fmt.Errorf("error getting current user, error: %s", err.Error())
-		}
-		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
-	}
-
-	// try un-globing the input
-	return filepath.Glob(inputPath)
-}
-
 // List recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
 func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 	var allFiles []Entry
 
-	var globFiles, err = preProcessInput(inputPath)
+	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+
+	var globFiles, err = unglobInput(inputPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error from pre-processing: %w", err)
 	}
