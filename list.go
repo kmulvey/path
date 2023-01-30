@@ -26,6 +26,10 @@ func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 		return nil, fmt.Errorf("Error from pre-processing: %w", err)
 	}
 
+	if len(globFiles) > 0 {
+		inputPath = globRegex.ReplaceAllString(inputPath, "")
+	}
+
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
 			if err != nil {
@@ -36,7 +40,9 @@ func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 			if err != nil {
 				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
 			}
-			if gf == path && stat.IsDir() {
+
+			// what if the input was "testdata/*"? this if will test gf which would be testdata/one
+			if path == inputPath && stat.IsDir() {
 				return nil
 			}
 
