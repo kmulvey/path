@@ -39,8 +39,12 @@ func NewEntry(inputPath string) (Entry, error) {
 	}
 
 	var stat fs.FileInfo
+	glob, err := filepath.Glob(abs)
+	if err != nil {
+		return Entry{}, fmt.Errorf("error globbing absolute path, error: %s", err.Error())
+	}
 
-	if !globRegex.MatchString(abs) {
+	if len(glob) <= 1 {
 		stat, err = os.Stat(abs)
 		if err != nil {
 			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
