@@ -187,5 +187,5 @@ func TestFileWatchFilter(t *testing.T) {
 
 	var files, err = List("./testdata/", NewFileWatchFilter())
 	assert.NoError(t, err)
-	assert.Equal(t, 5, len(files))
+	assert.Equal(t, 6, len(files))
 }
