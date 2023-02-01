@@ -155,15 +155,5 @@ func unglobInput(inputPath string) (string, []string, error) {
 
 	// try un-globing the input
 	globs, err := filepath.Glob(inputPath)
-	if err != nil {
-		return "", nil, fmt.Errorf("error unglobbing input, error: %w", err)
-	}
-
-	// trying to remove the globs and return a cleaner inputPath, this is not a perfect solution.
-	// see TestCrazyFileName
-	if len(globs) > 0 {
-		inputPath = filepath.Dir(globs[0])
-	}
-
 	return inputPath, globs, err
 }

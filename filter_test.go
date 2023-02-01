@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"regexp"
+	"strings"
 	"testing"
 	"time"
 
@@ -18,16 +19,19 @@ func TestFilterEntities(t *testing.T) {
 	assert.Equal(t, 8, len(files))
 	assert.False(t, Contains(files, "./testdata/"))
 
-	var skipMap = map[string]struct{}{
-		"testdata/one/file.mp4": {},
-		"testdata/one/file.mp3": {},
+	var skipMap = make(map[string]struct{})
+
+	for _, file := range files {
+		if strings.Contains(file.AbsolutePath, ".mp3") || strings.Contains(file.AbsolutePath, ".mp4") {
+			skipMap[file.AbsolutePath] = struct{}{}
+		}
 	}
 
 	var skipMapFilter = NewSkipMapEntitiesFilter(skipMap)
 
 	files = FilterEntities(files, skipMapFilter)
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 6, len(files))
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
 	for _, str := range files {
