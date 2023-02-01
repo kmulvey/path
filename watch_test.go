@@ -50,7 +50,7 @@ func TestWatchDir(t *testing.T) {
 			}
 		}()
 
-		WatchDir(ctx, dir, false, files, errors, regexFilter)
+		WatchDir(ctx, dir, 0, files, errors, regexFilter)
 	}()
 
 	time.Sleep(time.Millisecond * 250) // give time for WatchDir to start up
@@ -69,7 +69,7 @@ func TestWatchDir(t *testing.T) {
 func TestSkipMapWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var testFile, err = NewEntry("./testdata/one/file.txt")
+	var testFile, err = NewEntry("./testdata/one/file.txt", 0)
 	assert.NoError(t, err)
 
 	var skipMapFilter = NewSkipMapWatchFilter(map[string]struct{}{testFile.AbsolutePath: {}})
@@ -77,7 +77,7 @@ func TestSkipMapWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, accpet)
 
-	testFileTwo, err := NewEntry("./testdata/one/file.mp3")
+	testFileTwo, err := NewEntry("./testdata/one/file.mp3", 0)
 	assert.NoError(t, err)
 
 	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: testFileTwo.AbsolutePath})
@@ -93,7 +93,7 @@ func TestDateWatchFilter(t *testing.T) {
 	var err = os.Chtimes("./testdata/one/file.mp4", time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC), time.Date(2022, 06, 01, 0, 0, 0, 0, time.UTC))
 	assert.NoError(t, err)
 
-	testFile, err := NewEntry("./testdata/one/file.mp4")
+	testFile, err := NewEntry("./testdata/one/file.mp4", 0)
 	assert.NoError(t, err)
 
 	var fromTime = time.Date(2022, 07, 01, 0, 0, 0, 0, time.UTC)
@@ -102,7 +102,7 @@ func TestDateWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, accpet)
 
-	testFile, err = NewEntry("./testdata/one/file.mp3")
+	testFile, err = NewEntry("./testdata/one/file.mp3", 0)
 	assert.NoError(t, err)
 
 	accpet, err = dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
@@ -116,7 +116,7 @@ func TestPermissionsWatchFilter(t *testing.T) {
 	// set the perms because the checkout in ci/cd doest match local
 	assert.NoError(t, os.Chmod("./testdata/one/file.mp3", fs.ModePerm))
 
-	var testFile, err = NewEntry("./testdata/one/file.mp3")
+	var testFile, err = NewEntry("./testdata/one/file.mp3", 0)
 	assert.NoError(t, err)
 
 	var permsFilter = NewPermissionsWatchFilter(uint32(fs.ModePerm), uint32(fs.ModePerm))
@@ -124,7 +124,7 @@ func TestPermissionsWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 
-	testFile, err = NewEntry("./testdata/one/file.mp4")
+	testFile, err = NewEntry("./testdata/one/file.mp4", 0)
 	assert.NoError(t, err)
 
 	accpet, err = permsFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
@@ -135,7 +135,7 @@ func TestPermissionsWatchFilter(t *testing.T) {
 func TestSizeWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var testFile, err = NewEntry("./testdata/one/file.mp4")
+	var testFile, err = NewEntry("./testdata/one/file.mp4", 0)
 	assert.NoError(t, err)
 
 	var sizeFilter = NewSizeWatchFilter(4000, 6000)
@@ -143,14 +143,14 @@ func TestSizeWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 
-	testFile, err = NewEntry("./testdata/one/file.mp3")
+	testFile, err = NewEntry("./testdata/one/file.mp3", 0)
 	assert.NoError(t, err)
 
 	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.False(t, accpet)
 
-	testFile, err = NewEntry("./testdata/one")
+	testFile, err = NewEntry("./testdata/one", 0)
 	assert.NoError(t, err)
 
 	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
@@ -161,7 +161,7 @@ func TestSizeWatchFilter(t *testing.T) {
 func TestOpWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var testFile, err = NewEntry("./testdata/one/file.mp4")
+	var testFile, err = NewEntry("./testdata/one/file.mp4", 0)
 	assert.NoError(t, err)
 
 	var opFilter = NewOpWatchFilter(fsnotify.Create)

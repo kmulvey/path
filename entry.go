@@ -6,67 +6,115 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"regexp"
 	"strings"
 )
-
-var globRegex = regexp.MustCompile(`\*|\!|\?|\[|\]`)
 
 // Entry is the currency of this package.
 type Entry struct {
 	FileInfo     fs.FileInfo
 	AbsolutePath string
-	Globs        []Entry // only populated from glob'd input
+	Children     []Entry
 }
 
-// NewEntry takes a filepath and expands ~ as well as other relative paths to absolute and stats them returning Entry.
-func NewEntry(inputPath string) (Entry, error) {
+// NewEntry is the public constructor for creating Entry. The levelsDeep param controls the level of recursion
+// when collecting file info in subdirectories. levelsDeep == 0 will only create an entry for inputPath.
+// Consider the number of files that may be under the root directory and the memory required to represent them
+// when choosing this value.
+func NewEntry(inputPath string, levelsDeep int) (Entry, error) {
 
-	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
-
-	// expand ~ paths
-	if strings.HasPrefix(inputPath, "~") {
-		user, err := user.Current()
-		if err != nil {
-			return Entry{}, fmt.Errorf("error getting current user, error: %s", err.Error())
-		}
-		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
-	}
-
-	var abs, err = filepath.Abs(inputPath)
+	var root, err = newEntry(inputPath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
+		return Entry{}, err
 	}
 
-	var stat fs.FileInfo
-	glob, err := filepath.Glob(abs)
+	var currLevel = &root
+	if currLevel.IsDir() && levelsDeep > 0 && len(root.Children) == 0 {
+
+		if err := currLevel.populateChildren(levelsDeep); err != nil {
+			return Entry{}, err
+		}
+	}
+
+	return root, nil
+}
+
+// populateChildren recursively populates the children of a directory.
+func (e *Entry) populateChildren(levels int) error {
+
+	files, err := os.ReadDir(e.AbsolutePath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("error globbing absolute path, error: %s", err.Error())
+		return err
 	}
 
-	if len(glob) <= 1 {
-		stat, err = os.Stat(abs)
+	var children = make([]Entry, len(files))
+	for i, file := range files {
+		var entry, err = newEntry(filepath.Join(e.AbsolutePath, file.Name()))
 		if err != nil {
-			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", abs, err)
+			return err
 		}
-	} else {
-		filenames, err := unglobInput(abs)
-		if err != nil {
-			return Entry{}, fmt.Errorf("error unglobbing input: %s, error: %w", abs, err)
-		}
+		children[i] = entry
+	}
 
-		var globs = make([]Entry, len(filenames))
-		for i, file := range filenames {
-			globs[i], err = NewEntry(file)
-			if err != nil {
-				return Entry{}, fmt.Errorf("error creating unglobbed entries, given input: %s, current file: %s, error: %w", abs, file, err)
+	e.Children = children
+
+	if levels > 0 {
+		for i, child := range e.Children {
+			if child.IsDir() {
+				err = e.Children[i].populateChildren(levels - 1)
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
 
-	return Entry{AbsolutePath: abs, FileInfo: stat}, nil
+	return nil
 }
 
+// newEntry takes a filepath and expands ~ as well as other relative paths to absolute and stats them returning Entry.
+func newEntry(inputPath string) (Entry, error) {
+
+	var entry = Entry{}
+	var err error
+	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+
+	inputPath, unglobbedFilenames, err := unglobInput(inputPath)
+	if err != nil {
+		return Entry{}, fmt.Errorf("error unglobbing input: %s, error: %w", entry.AbsolutePath, err)
+	}
+
+	entry.AbsolutePath, err = filepath.Abs(inputPath)
+	if err != nil {
+		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
+	}
+
+	if len(unglobbedFilenames) <= 1 {
+
+		entry.FileInfo, err = os.Stat(entry.AbsolutePath)
+		if err != nil {
+			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", entry.AbsolutePath, err)
+		}
+	} else {
+
+		entry.Children = make([]Entry, len(unglobbedFilenames))
+		for i, file := range unglobbedFilenames {
+
+			entry.Children[i], err = NewEntry(file, 0)
+			if err != nil {
+				return Entry{}, fmt.Errorf("error creating unglobbed entries, given input: %s, current file: %s, error: %w", entry.AbsolutePath, file, err)
+			}
+		}
+
+		entry.FileInfo, err = os.Stat(filepath.Dir(entry.AbsolutePath)) // we use Dir() here because its globbed and will not work otherwise
+		if err != nil {
+			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", entry.AbsolutePath, err)
+		}
+	}
+
+	return entry, nil
+}
+
+// String fulfils the flag.Value interface https://pkg.go.dev/flag#Value.
 func (e *Entry) String() string {
 	return e.AbsolutePath
 }
@@ -94,19 +142,18 @@ func OnlyNames(input []Entry) []string {
 }
 
 // unglobInput expands ~, and un-globs input.
-func unglobInput(inputPath string) ([]string, error) {
-
-	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
+func unglobInput(inputPath string) (string, []string, error) {
 
 	// expand ~ paths
 	if strings.HasPrefix(inputPath, "~") {
 		user, err := user.Current()
 		if err != nil {
-			return nil, fmt.Errorf("error getting current user, error: %s", err.Error())
+			return "", nil, fmt.Errorf("error getting current user, error: %s", err.Error())
 		}
 		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
 	}
 
 	// try un-globing the input
-	return filepath.Glob(inputPath)
+	globs, err := filepath.Glob(inputPath)
+	return inputPath, globs, err
 }

@@ -21,14 +21,14 @@ func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
 
 	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
 
-	var globFiles, err = unglobInput(inputPath)
+	inputPath, globFiles, err := unglobInput(inputPath)
 	if err != nil {
 		return nil, fmt.Errorf("Error from pre-processing: %w", err)
 	}
 
-	if len(globFiles) > 0 {
-		inputPath = globRegex.ReplaceAllString(inputPath, "")
-	}
+	// if len(globFiles) > 0 {
+	// 	inputPath = globRegex.ReplaceAllString(inputPath, "")
+	// }
 
 	for _, gf := range globFiles {
 		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {

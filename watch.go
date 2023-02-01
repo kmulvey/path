@@ -20,11 +20,11 @@ type WatchEvent struct {
 }
 
 // WatchDir will watch a directory indefinitely for changes and publish them on the given files channel with optional filters.
-func WatchDir(ctx context.Context, inputPath string, recursive bool, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
+func WatchDir(ctx context.Context, inputPath string, recursiveDepth int, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
 
 	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
 
-	var inputEntry, err = NewEntry(inputPath)
+	var inputEntry, err = NewEntry(inputPath, recursiveDepth)
 	if err != nil {
 		errors <- fmt.Errorf("error with inputPath: %w", err)
 		return
@@ -66,7 +66,7 @@ func WatchDir(ctx context.Context, inputPath string, recursive bool, files chan 
 						continue EventsLoop
 					}
 				}
-				if e, err := NewEntry(event.Name); err != nil {
+				if e, err := NewEntry(event.Name, recursiveDepth); err != nil {
 					errors <- err
 				} else {
 					files <- WatchEvent{Entry: e, Op: event.Op}
@@ -82,7 +82,7 @@ func WatchDir(ctx context.Context, inputPath string, recursive bool, files chan 
 	}()
 
 	var entries []Entry
-	if recursive {
+	if recursiveDepth > 0 {
 		entries, err = List(inputPath, NewDirListFilter())
 		if err != nil {
 			errors <- fmt.Errorf("error adding path to watcher: %w", err)
@@ -136,7 +136,7 @@ func NewDateWatchFilter(from, to time.Time) DateWatchFilter {
 }
 
 func (df DateWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	var entry, err = NewEntry(event.Name)
+	var entry, err = NewEntry(event.Name, 0)
 	if err != nil {
 		return false, err
 	}
@@ -157,7 +157,7 @@ func NewSkipMapWatchFilter(skipMap map[string]struct{}) SkipMapWatchFilter {
 }
 
 func (smf SkipMapWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	var entry, err = NewEntry(event.Name)
+	var entry, err = NewEntry(event.Name, 0)
 	if err != nil {
 		return false, err
 	}
@@ -179,7 +179,7 @@ func NewPermissionsWatchFilter(min, max uint32) PermissionsWatchFilter {
 }
 
 func (pf PermissionsWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	var entry, err = NewEntry(event.Name)
+	var entry, err = NewEntry(event.Name, 0)
 	if err != nil {
 		return false, err
 	}
@@ -202,7 +202,7 @@ func NewSizeWatchFilter(min, max int64) SizeWatchFilter {
 }
 
 func (pf SizeWatchFilter) filter(event fsnotify.Event) (bool, error) {
-	var entry, err = NewEntry(event.Name)
+	var entry, err = NewEntry(event.Name, 0)
 	if err != nil {
 		return false, err
 	}
@@ -232,8 +232,7 @@ func (of OpWatchFilter) filter(event fsnotify.Event) (bool, error) {
 }
 
 // DirWatchFilter only returns sub directories of the target.
-type DirWatchFilter struct {
-}
+type DirWatchFilter struct{}
 
 func NewDirWatchFilter() DirWatchFilter {
 	return DirWatchFilter{}
@@ -247,8 +246,7 @@ func (df DirWatchFilter) filter(entry Entry) (bool, error) {
 }
 
 // FileWatchFilter only returns files.
-type FileWatchFilter struct {
-}
+type FileWatchFilter struct{}
 
 func NewFileWatchFilter() FileWatchFilter {
 	return FileWatchFilter{}
