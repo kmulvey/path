@@ -35,7 +35,9 @@ func TestCli(t *testing.T) {
 	assert.Equal(t, get, str)
 
 	err = entry.Set("~/testdata/*")
-	assert.Equal(t, "error stating file: /home/kmulvey/testdata/*, error: stat /home/kmulvey/testdata/*: no such file or directory", err.Error())
+	assert.True(t, strings.HasPrefix(err.Error(), "error stating file"))
+	assert.True(t, strings.HasSuffix(err.Error(), "no such file or directory"))
+
 	assert.Equal(t, "", entry.AbsolutePath)
 	assert.Nil(t, entry.FileInfo)
 
