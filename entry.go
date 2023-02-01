@@ -148,12 +148,22 @@ func unglobInput(inputPath string) (string, []string, error) {
 	if strings.HasPrefix(inputPath, "~") {
 		user, err := user.Current()
 		if err != nil {
-			return "", nil, fmt.Errorf("error getting current user, error: %s", err.Error())
+			return "", nil, fmt.Errorf("error getting current user, error: %w", err)
 		}
 		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
 	}
 
 	// try un-globing the input
 	globs, err := filepath.Glob(inputPath)
+	if err != nil {
+		return "", nil, fmt.Errorf("error unglobbing input, error: %w", err)
+	}
+
+	// trying to remove the globs and return a cleaner inputPath, this is not a perfect solution.
+	// see TestCrazyFileName
+	if len(globs) > 0 {
+		inputPath = filepath.Dir(globs[0])
+	}
+
 	return inputPath, globs, err
 }
