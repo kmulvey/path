@@ -1,77 +1,60 @@
 package path
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
-	"os"
-	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 // List recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
-func List(inputPath string, filters ...ListFilter) ([]Entry, error) {
-	var allFiles []Entry
+func List(inputPath string, depth int, filters ...ListFilter) ([]Entry, error) {
 
-	if strings.TrimSpace(inputPath) == "" {
-		return nil, errors.New("inputPath is empty")
-	}
-
-	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
-
-	inputPath, globFiles, err := unglobInput(inputPath)
+	var root, err = NewEntry(inputPath, depth)
 	if err != nil {
-		return nil, fmt.Errorf("Error from pre-processing: %w", err)
+		return nil, err
 	}
 
-	// if len(globFiles) > 0 {
-	// 	inputPath = globRegex.ReplaceAllString(inputPath, "")
-	// }
+	return getChildern(root, depth)
+}
 
-	for _, gf := range globFiles {
-		err = filepath.Walk(gf, func(path string, info fs.FileInfo, err error) error {
+func getChildern(entry Entry, depth int, filters ...ListFilter) ([]Entry, error) {
+
+	var entries = entry.Children
+
+	if depth == 1 {
+
+		return entry.Children, nil
+	} else {
+
+		for _, child := range entry.Children {
+
+			var newChildren, err = getChildern(child, depth-1)
 			if err != nil {
-				return fmt.Errorf("Walk error in dir: %s, error: %w", path, err)
-			}
-			// do not include the root dir
-			stat, err := os.Stat(path)
-			if err != nil {
-				return fmt.Errorf("Walk error in dir stating file: %s, error: %w", path, err)
+				return nil, err
 			}
 
-			// what if the input was "testdata/*"? this if will test gf which would be testdata/one
-			if path == inputPath && stat.IsDir() {
-				return nil
-			}
+			// filter out the children we dont need ... sorry kids :(
+			for i, childEntry := range newChildren {
 
-			abs, err := filepath.Abs(filepath.Clean(path))
-			if err != nil {
-				return fmt.Errorf("error getting abs path for file: %s, error: %w", path, err)
-			}
+				for _, fn := range filters {
 
-			var entry = Entry{AbsolutePath: abs, FileInfo: info}
-
-			// try all the filter funcs
-			for _, fn := range filters {
-				var accepted, err = fn.filter(entry)
-				if err != nil {
-					return err
-				}
-				if !accepted {
-					return nil
+					var accepted, err = fn.filter(childEntry)
+					if err != nil {
+						return nil, fmt.Errorf("error filtering children: %w", err)
+					}
+					if !accepted {
+						newChildren = slices.Delete(newChildren, i, i+1)
+					}
 				}
 			}
-
-			allFiles = append(allFiles, entry)
-			return nil
-		})
-		if err != nil {
-			return nil, err
+			entries = append(entries, newChildren...)
 		}
 	}
-	return allFiles, nil
+
+	return entries, nil
 }
 
 //////////////////////////////////////////////////////////////////
