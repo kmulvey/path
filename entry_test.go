@@ -10,7 +10,7 @@ import (
 func TestOnlyNames(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/")
+	var files, err = List("./testdata/", 2)
 	assert.NoError(t, err)
 	assert.False(t, Contains(files, "./testdata/"))
 
@@ -54,7 +54,7 @@ func TestPopulateChildren(t *testing.T) {
 func TestContains(t *testing.T) {
 	t.Parallel()
 
-	var entries, err = List("./testdata/")
+	var entries, err = List("./testdata/", 2)
 	assert.NoError(t, err)
 
 	var mp3Path string

@@ -20,7 +20,7 @@ type Entry struct {
 // when collecting file info in subdirectories. levelsDeep == 0 will only create an entry for inputPath.
 // Consider the number of files that may be under the root directory and the memory required to represent them
 // when choosing this value.
-func NewEntry(inputPath string, levelsDeep int) (Entry, error) {
+func NewEntry(inputPath string, levelsDeep int, filters ...ListFilter) (Entry, error) {
 
 	var root, err = newEntry(inputPath)
 	if err != nil {
@@ -39,7 +39,7 @@ func NewEntry(inputPath string, levelsDeep int) (Entry, error) {
 }
 
 // populateChildren recursively populates the children of a directory.
-func (e *Entry) populateChildren(levels int) error {
+func (e *Entry) populateChildren(levels int, filters ...ListFilter) error {
 
 	files, err := os.ReadDir(e.AbsolutePath)
 	if err != nil {
@@ -47,11 +47,26 @@ func (e *Entry) populateChildren(levels int) error {
 	}
 
 	var children = make([]Entry, len(files))
+FileLoop:
 	for i, file := range files {
+
 		var entry, err = newEntry(filepath.Join(e.AbsolutePath, file.Name()))
 		if err != nil {
 			return err
 		}
+
+		// filter out the children we dont need ... sorry kids :(
+		for _, fn := range filters {
+
+			var accepted, err = fn.filter(entry)
+			if err != nil {
+				return fmt.Errorf("error filtering children: %w", err)
+			}
+			if !accepted {
+				continue FileLoop
+			}
+		}
+
 		children[i] = entry
 	}
 
@@ -121,6 +136,31 @@ func (e *Entry) String() string {
 
 func (e *Entry) IsDir() bool {
 	return e.FileInfo.IsDir()
+}
+
+// List recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
+func (e *Entry) Flatten() ([]Entry, error) {
+	return collectChildern(*e)
+}
+
+func collectChildern(entry Entry) ([]Entry, error) {
+
+	var entries = entry.Children
+
+	if len(entry.Children) > 0 {
+
+		for _, child := range entry.Children {
+
+			var newChildren, err = collectChildern(child)
+			if err != nil {
+				return nil, err
+			}
+
+			entries = append(entries, newChildren...)
+		}
+	}
+
+	return entries, nil
 }
 
 func Contains(input []Entry, needle string) bool {
