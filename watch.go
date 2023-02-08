@@ -83,11 +83,18 @@ func WatchDir(ctx context.Context, inputPath string, recursiveDepth int, files c
 
 	var entries []Entry
 	if recursiveDepth > 0 {
-		entries, err = List(inputPath, NewDirListFilter())
+		var rootEntry, err = NewEntry(inputPath, MaxDepth, NewDirEntitiesFilter())
 		if err != nil {
 			errors <- fmt.Errorf("error adding path to watcher: %w", err)
 			return
 		}
+
+		entries, err = rootEntry.Flatten()
+		if err != nil {
+			errors <- fmt.Errorf("error flattening entry: %w", err)
+			return
+		}
+
 		entries = append(entries, inputEntry)
 	} else {
 		entries = []Entry{inputEntry}

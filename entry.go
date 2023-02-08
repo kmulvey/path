@@ -3,11 +3,14 @@ package path
 import (
 	"fmt"
 	"io/fs"
+	"math"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 )
+
+var MaxDepth = math.MaxInt64
 
 // Entry is the currency of this package.
 type Entry struct {
@@ -20,7 +23,7 @@ type Entry struct {
 // when collecting file info in subdirectories. levelsDeep == 0 will only create an entry for inputPath.
 // Consider the number of files that may be under the root directory and the memory required to represent them
 // when choosing this value.
-func NewEntry(inputPath string, levelsDeep int, filters ...ListFilter) (Entry, error) {
+func NewEntry(inputPath string, levelsDeep int, filters ...EntriesFilter) (Entry, error) {
 
 	var root, err = newEntry(inputPath)
 	if err != nil {
@@ -38,8 +41,8 @@ func NewEntry(inputPath string, levelsDeep int, filters ...ListFilter) (Entry, e
 	return root, nil
 }
 
-// populateChildren recursively populates the children of a directory.
-func (e *Entry) populateChildren(levels int, filters ...ListFilter) error {
+// populateChildren recursively populates the children of an Entry.
+func (e *Entry) populateChildren(levels int, filters ...EntriesFilter) error {
 
 	files, err := os.ReadDir(e.AbsolutePath)
 	if err != nil {
@@ -47,6 +50,7 @@ func (e *Entry) populateChildren(levels int, filters ...ListFilter) error {
 	}
 
 	var children = make([]Entry, len(files))
+
 FileLoop:
 	for i, file := range files {
 
@@ -58,10 +62,7 @@ FileLoop:
 		// filter out the children we dont need ... sorry kids :(
 		for _, fn := range filters {
 
-			var accepted, err = fn.filter(entry)
-			if err != nil {
-				return fmt.Errorf("error filtering children: %w", err)
-			}
+			var accepted = fn.filter(entry)
 			if !accepted {
 				continue FileLoop
 			}
@@ -161,24 +162,6 @@ func collectChildern(entry Entry) ([]Entry, error) {
 	}
 
 	return entries, nil
-}
-
-func Contains(input []Entry, needle string) bool {
-	for _, entry := range input {
-		if entry.AbsolutePath == needle {
-			return true
-		}
-	}
-	return false
-}
-
-// OnlyNames returns a slice of absolute paths (strings) from a given Entry slice.
-func OnlyNames(input []Entry) []string {
-	var result = make([]string, len(input))
-	for i, entry := range input {
-		result[i] = entry.String()
-	}
-	return result
 }
 
 // unglobInput expands ~, and un-globs input.
