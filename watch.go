@@ -238,7 +238,6 @@ func (of OpWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	return false, nil
 }
 
-/*
 // DirWatchFilter only returns sub directories of the target.
 type DirWatchFilter struct{}
 
@@ -266,4 +265,3 @@ func (ff FileWatchFilter) filter(entry Entry) (bool, error) {
 	}
 	return true, nil
 }
-*/

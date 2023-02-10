@@ -174,20 +174,40 @@ func TestOpWatchFilter(t *testing.T) {
 	assert.False(t, accpet)
 }
 
-/*
 func TestDirWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = NewEntry("./testdata/", 1, NewDirWatchFilter())
+	var entry, err = NewEntry("./testdata/one", 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(files))
+
+	var dirFilter = NewDirWatchFilter()
+	accpet, err := dirFilter.filter(entry)
+	assert.NoError(t, err)
+	assert.True(t, accpet)
+
+	entry, err = NewEntry("./testdata/ogCGs91VSA5FBjJdgE8eeLSngbebPXyDCICZ7I~tplv-f5insbecw7-1 720 720.jpg", 1)
+	assert.NoError(t, err)
+
+	accpet, err = dirFilter.filter(entry)
+	assert.NoError(t, err)
+	assert.False(t, accpet)
 }
 
 func TestFileWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/", NewFileWatchFilter())
+	var entry, err = NewEntry("./testdata/one", 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(files))
+
+	var dirFilter = NewFileWatchFilter()
+	accpet, err := dirFilter.filter(entry)
+	assert.NoError(t, err)
+	assert.False(t, accpet)
+
+	entry, err = NewEntry("./testdata/ogCGs91VSA5FBjJdgE8eeLSngbebPXyDCICZ7I~tplv-f5insbecw7-1 720 720.jpg", 1)
+	assert.NoError(t, err)
+
+	accpet, err = dirFilter.filter(entry)
+	assert.NoError(t, err)
+	assert.True(t, accpet)
 }
-*/
