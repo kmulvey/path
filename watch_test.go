@@ -83,6 +83,10 @@ func TestSkipMapWatchFilter(t *testing.T) {
 	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: testFileTwo.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	assert.Error(t, err)
+	assert.False(t, accpet)
 }
 
 func TestDateWatchFilter(t *testing.T) {
@@ -108,6 +112,10 @@ func TestDateWatchFilter(t *testing.T) {
 	accpet, err = dateFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	accpet, err = dateFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	assert.Error(t, err)
+	assert.False(t, accpet)
 }
 
 func TestPermissionsWatchFilter(t *testing.T) {
@@ -156,6 +164,10 @@ func TestSizeWatchFilter(t *testing.T) {
 	accpet, err = sizeFilter.filter(fsnotify.Event{Name: testFile.AbsolutePath})
 	assert.NoError(t, err)
 	assert.True(t, accpet)
+
+	accpet, err = sizeFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	assert.Error(t, err)
+	assert.False(t, accpet)
 }
 
 func TestOpWatchFilter(t *testing.T) {
