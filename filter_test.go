@@ -1,13 +1,24 @@
 package path
 
-/*
+import (
+	"io/fs"
+	"os"
+	"regexp"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/stretchr/testify/assert"
+)
+
 func TestFilterEntities(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/", 3)
+	var entry, err = NewEntry("./testdata/", 3)
 	assert.NoError(t, err)
+
+	files, err := entry.Flatten()
 	assert.Equal(t, 8, len(files))
-	assert.False(t, Contains(files, "./testdata/"))
 
 	var skipMap = make(map[string]struct{})
 
@@ -27,6 +38,19 @@ func TestFilterEntities(t *testing.T) {
 	for _, str := range files {
 		assert.False(t, suffixRegex.MatchString(str.FileInfo.Name()))
 	}
+}
+func TestRegexEntitiesFilter(t *testing.T) {
+	t.Parallel()
+
+	var testFile, err = NewEntry("./testdata/one/file.txt", 0)
+	assert.NoError(t, err)
+
+	var regexFilter = NewRegexEntitiesFilter(regexp.MustCompile(".*.txt$"))
+	assert.True(t, regexFilter.filter(testFile))
+
+	testFile, err = NewEntry("./testdata/one/file.mp3", 0)
+	assert.NoError(t, err)
+	assert.False(t, regexFilter.filter(testFile))
 }
 
 func TestDateEntitiesFilter(t *testing.T) {
@@ -83,20 +107,6 @@ func TestPermissionsEntitiesFilter(t *testing.T) {
 	assert.False(t, permsFilter.filter(testFile))
 }
 
-func TestRegexEntitiesFilter(t *testing.T) {
-	t.Parallel()
-
-	var testFile, err = NewEntry("./testdata/one/file.txt", 0)
-	assert.NoError(t, err)
-
-	var regexFilter = NewRegexEntitiesFilter(regexp.MustCompile(".*.txt$"))
-	assert.True(t, regexFilter.filter(testFile))
-
-	testFile, err = NewEntry("./testdata/one/file.mp3", 0)
-	assert.NoError(t, err)
-	assert.False(t, regexFilter.filter(testFile))
-}
-
 func TestSizeEntitiesFilter(t *testing.T) {
 	t.Parallel()
 
@@ -140,4 +150,3 @@ func TestFileEntitiesFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, filter.filter(testFile))
 }
-*/
