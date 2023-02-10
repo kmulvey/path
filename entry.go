@@ -33,58 +33,12 @@ func NewEntry(inputPath string, levelsDeep int, filters ...EntriesFilter) (Entry
 	var currLevel = &root
 	if currLevel.IsDir() && levelsDeep > 0 && len(root.Children) == 0 {
 
-		if err := currLevel.populateChildren(levelsDeep); err != nil {
+		if err := currLevel.populateChildren(levelsDeep, filters...); err != nil {
 			return Entry{}, err
 		}
 	}
 
 	return root, nil
-}
-
-// populateChildren recursively populates the children of an Entry.
-func (e *Entry) populateChildren(levels int, filters ...EntriesFilter) error {
-
-	files, err := os.ReadDir(e.AbsolutePath)
-	if err != nil {
-		return err
-	}
-
-	var children = make([]Entry, len(files))
-
-FileLoop:
-	for i, file := range files {
-
-		var entry, err = newEntry(filepath.Join(e.AbsolutePath, file.Name()))
-		if err != nil {
-			return err
-		}
-
-		// filter out the children we dont need ... sorry kids :(
-		for _, fn := range filters {
-
-			var accepted = fn.filter(entry)
-			if !accepted {
-				continue FileLoop
-			}
-		}
-
-		children[i] = entry
-	}
-
-	e.Children = children
-
-	if levels > 0 {
-		for i, child := range e.Children {
-			if child.IsDir() {
-				err = e.Children[i].populateChildren(levels - 1)
-				if err != nil {
-					return err
-				}
-			}
-		}
-	}
-
-	return nil
 }
 
 // newEntry takes a filepath and expands ~ as well as other relative paths to absolute and stats them returning Entry.
@@ -128,6 +82,52 @@ func newEntry(inputPath string) (Entry, error) {
 	}
 
 	return entry, nil
+}
+
+// populateChildren recursively populates the children of an Entry.
+func (e *Entry) populateChildren(levels int, filters ...EntriesFilter) error {
+
+	files, err := os.ReadDir(e.AbsolutePath)
+	if err != nil {
+		return err
+	}
+
+	var children []Entry
+
+FileLoop:
+	for _, file := range files {
+
+		var entry, err = newEntry(filepath.Join(e.AbsolutePath, file.Name()))
+		if err != nil {
+			return err
+		}
+
+		// filter out the children we dont need ... sorry kids :(
+		for _, fn := range filters {
+			var accepted = fn.filter(entry)
+			if !accepted {
+				continue FileLoop
+			}
+		}
+
+		children = append(children, entry)
+	}
+
+	e.Children = children
+	levels--
+
+	if levels > 0 {
+		for i, child := range e.Children {
+			if child.IsDir() {
+				err = e.Children[i].populateChildren(levels - 1)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
 }
 
 // String fulfils the flag.Value interface https://pkg.go.dev/flag#Value.
