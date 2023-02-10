@@ -1,6 +1,21 @@
 package path
 
-/*
+import (
+	"context"
+	"errors"
+	"io/fs"
+	"log"
+	"os"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/fsnotify/fsnotify"
+	"github.com/stretchr/testify/assert"
+)
+
 func TestWatchDir(t *testing.T) {
 	t.Parallel()
 
@@ -159,10 +174,11 @@ func TestOpWatchFilter(t *testing.T) {
 	assert.False(t, accpet)
 }
 
+/*
 func TestDirWatchFilter(t *testing.T) {
 	t.Parallel()
 
-	var files, err = List("./testdata/", NewDirWatchFilter())
+	var files, err = NewEntry("./testdata/", 1, NewDirWatchFilter())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
 }
