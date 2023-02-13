@@ -102,11 +102,14 @@ FileLoop:
 			return err
 		}
 
-		// filter out the children we dont need ... sorry kids :(
-		for _, fn := range filters {
-			var accepted = fn.filter(entry)
-			if !accepted {
-				continue FileLoop
+		// we dont filter dirs because this is a recursive func and we may miss files deeper in the dir structure
+		if !entry.IsDir() {
+			// filter out the children we dont need ... sorry kids :(
+			for _, fn := range filters {
+				var accepted = fn.filter(entry)
+				if !accepted {
+					continue FileLoop
+				}
 			}
 		}
 
