@@ -16,4 +16,8 @@ func TestList(t *testing.T) {
 	files, err = List("./notexist/", 3)
 	assert.Error(t, err)
 	assert.Equal(t, 0, len(files))
+
+	files, err = List("./testdata/", 3, NewDirEntitiesFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 2, len(files))
 }
