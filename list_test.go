@@ -17,7 +17,12 @@ func TestList(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, 0, len(files))
 
+	// test filtering out
 	files, err = List("./testdata/", 3, NewDirEntitiesFilter())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(files))
+
+	files, err = List("./testdata/", 3, NewFileEntitiesFilter())
+	assert.NoError(t, err)
+	assert.Equal(t, 6, len(files))
 }
