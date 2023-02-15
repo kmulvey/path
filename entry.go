@@ -60,7 +60,7 @@ func newEntry(inputPath string) (Entry, error) {
 
 	if len(unglobbedFilenames) <= 1 {
 
-		entry.FileInfo, err = os.Stat(entry.AbsolutePath)
+		entry.FileInfo, err = os.Lstat(entry.AbsolutePath)
 		if err != nil {
 			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", entry.AbsolutePath, err)
 		}
@@ -75,7 +75,7 @@ func newEntry(inputPath string) (Entry, error) {
 			}
 		}
 
-		entry.FileInfo, err = os.Stat(filepath.Dir(entry.AbsolutePath)) // we use Dir() here because its globbed and will not work otherwise
+		entry.FileInfo, err = os.Lstat(filepath.Dir(entry.AbsolutePath)) // we use Dir() here because its globbed and will not work otherwise
 		if err != nil {
 			return Entry{}, fmt.Errorf("error stating file: %s, error: %w", entry.AbsolutePath, err)
 		}
@@ -102,8 +102,8 @@ FileLoop:
 			return err
 		}
 
-		// we dont filter dirs because this is a recursive func and we may miss files deeper in the dir structure
-		if !entry.IsDir() {
+		// we dont filter dirs or symlinks because this is a recursive func and we may miss files deeper in the dir structure
+		if !file.IsDir() && entry.FileInfo.Mode()&os.ModeSymlink != fs.ModeSymlink {
 			// filter out the children we dont need ... sorry kids :(
 			for _, fn := range filters {
 				var accepted = fn.filter(entry)
@@ -121,8 +121,8 @@ FileLoop:
 
 	if levels > 0 {
 		for i, child := range e.Children {
-			if child.IsDir() {
-				err = e.Children[i].populateChildren(levels - 1)
+			if child.IsDir() || child.FileInfo.Mode()&os.ModeSymlink == fs.ModeSymlink {
+				err = e.Children[i].populateChildren(levels-1, filters...)
 				if err != nil {
 					return err
 				}

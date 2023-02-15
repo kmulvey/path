@@ -21,7 +21,7 @@ func TestWatchDir(t *testing.T) {
 
 	var dir = "./testwatchdir"
 
-	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(dir, os.ModePerm)
 		if err != nil {
 			log.Println(err)
@@ -71,7 +71,7 @@ func TestWatchDirRecursive(t *testing.T) {
 
 	var dir = "./testwatchdirrecursive"
 
-	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
 		err := os.MkdirAll(filepath.Join(dir, "one"), os.ModePerm)
 		assert.NoError(t, err)
 

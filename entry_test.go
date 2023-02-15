@@ -66,7 +66,7 @@ func TestPopulateChildren(t *testing.T) {
 	assert.Equal(t, 3, len(entry.Children))
 
 	entry = Entry{AbsolutePath: "./testdata"}
-	stat, err := os.Stat("./testdata")
+	stat, err := os.Lstat("./testdata")
 	assert.NoError(t, err)
 	entry.FileInfo = stat
 
@@ -132,7 +132,7 @@ func TestUnglobInput(t *testing.T) {
 	var testFile = filepath.Join(user.HomeDir, "testfile")
 	defer assert.NoError(t, os.RemoveAll(testFile))
 
-	if _, err := os.Stat(testFile); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Lstat(testFile); errors.Is(err, os.ErrNotExist) {
 		f, createErr := os.Create(testFile)
 		assert.NoError(t, createErr)
 		assert.NoError(t, f.Close())
