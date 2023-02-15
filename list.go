@@ -1,5 +1,9 @@
 package path
 
+import (
+	"os"
+)
+
 // List is just a convience function to get a slice of files
 func List(inputPath string, levelsDeep int, filters ...EntriesFilter) ([]Entry, error) {
 
@@ -13,18 +17,22 @@ func List(inputPath string, levelsDeep int, filters ...EntriesFilter) ([]Entry, 
 		return nil, err
 	}
 
+	var filteredFiles []Entry
+
 	// we filter here again because populateChildren may return dirs that do not match the filter
+FileLoop:
 	for _, file := range files {
 
-		if file.IsDir() {
+		if file.IsDir() || file.FileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
 			for _, fn := range filters {
 				var accepted = fn.filter(file)
 				if !accepted {
-					continue
+					continue FileLoop
 				}
 			}
 		}
+		filteredFiles = append(filteredFiles, file)
 	}
 
-	return files, nil
+	return filteredFiles, nil
 }
