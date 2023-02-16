@@ -3,14 +3,13 @@ package path
 import (
 	"fmt"
 	"io/fs"
-	"math"
 	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
 )
 
-var MaxDepth = int(math.MaxInt64)
+var MaxDepth int = 1000 // arbitrary, but hopefully enough
 
 // Entry is the currency of this package.
 type Entry struct {
