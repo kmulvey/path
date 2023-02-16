@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-var MaxDepth = math.MaxInt64
+var MaxDepth = int(math.MaxInt64)
 
 // Entry is the currency of this package.
 type Entry struct {
