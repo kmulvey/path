@@ -15,7 +15,7 @@ func TestContains(t *testing.T) {
 
 	files, err := entry.Flatten()
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 9, len(files))
 
 	var mp3Path string
 
@@ -40,7 +40,7 @@ func TestOnlyNames(t *testing.T) {
 
 	files, err := entry.Flatten()
 	assert.NoError(t, err)
-	assert.Equal(t, 8, len(files))
+	assert.Equal(t, 9, len(files))
 
 	for _, name := range OnlyNames(files) {
 		assert.True(t, strings.HasPrefix(name, "/"))
