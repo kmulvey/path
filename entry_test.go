@@ -81,9 +81,9 @@ func TestCollectChildren(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
 
-	files, err := entry.Flatten()
+	files, err := entry.Flatten(false)
 	assert.NoError(t, err)
-	assert.Equal(t, 4, len(files))
+	assert.Equal(t, 3, len(files))
 }
 
 func TestString(t *testing.T) {

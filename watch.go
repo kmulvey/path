@@ -20,7 +20,7 @@ type WatchEvent struct {
 }
 
 // WatchDir will watch a directory indefinitely for changes and publish them on the given files channel with optional filters.
-func WatchDir(ctx context.Context, inputPath string, recursiveDepth int, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
+func WatchDir(ctx context.Context, inputPath string, recursiveDepth int, includeRoot bool, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
 
 	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
 
@@ -89,7 +89,7 @@ func WatchDir(ctx context.Context, inputPath string, recursiveDepth int, files c
 			return
 		}
 
-		entries, err = rootEntry.Flatten()
+		entries, err = rootEntry.Flatten(includeRoot)
 		if err != nil {
 			errors <- fmt.Errorf("error flattening entry: %w", err)
 			return

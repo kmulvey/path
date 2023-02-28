@@ -141,14 +141,18 @@ func (e *Entry) IsDir() bool {
 	return e.FileInfo.IsDir()
 }
 
-// List recursively lists all files with optional filters. The root directory "inputPath" is excluded from the results.
-func (e *Entry) Flatten() ([]Entry, error) {
+// List recursively lists all files with optional filters. If includeRoot is true the root directory "inputPath" is included in the results.
+func (e *Entry) Flatten(includeRoot bool) ([]Entry, error) {
 	var arr, err = collectChildern(*e)
 	if err != nil {
 		return nil, err
 	}
 
-	return append(arr, *e), nil
+	if includeRoot {
+		return append(arr, *e), nil
+	}
+
+	return arr, nil
 }
 
 func collectChildern(entry Entry) ([]Entry, error) {

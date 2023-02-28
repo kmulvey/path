@@ -50,7 +50,7 @@ func TestWatchDir(t *testing.T) {
 			}
 		}()
 
-		WatchDir(ctx, dir, 0, files, errors, regexFilter)
+		WatchDir(ctx, dir, 0, false, files, errors, regexFilter)
 	}()
 
 	time.Sleep(time.Millisecond * 250) // give time for WatchDir to start up
@@ -107,7 +107,7 @@ func TestWatchDirRecursive(t *testing.T) {
 			}
 		}()
 
-		WatchDir(ctx, dir, 2, files, errors, regexFilter)
+		WatchDir(ctx, dir, 2, false, files, errors, regexFilter)
 	}()
 
 	time.Sleep(time.Millisecond * 250) // give time for WatchDir to start up
