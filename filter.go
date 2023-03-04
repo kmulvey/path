@@ -9,10 +9,13 @@ import (
 )
 
 // FilterEntities removes files from the slice if they are not accepted by the given filter function.
-func FilterEntities(files []Entry, filter EntriesFilter) []Entry {
-	for i := len(files) - 1; i >= 0; i-- {
-		if !filter.filter(files[i]) {
-			files = goutils.RemoveElementFromArray(files, i)
+func FilterEntities(files []Entry, filters ...EntriesFilter) []Entry {
+
+	for _, fn := range filters {
+		for i := len(files) - 1; i >= 0; i-- {
+			if !fn.filter(files[i]) {
+				files = goutils.RemoveElementFromArray(files, i)
+			}
 		}
 	}
 	return files
