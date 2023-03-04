@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-var MaxDepth int = 1000 // arbitrary, but hopefully enough
+var MaxDepth uint8 = 255 // arbitrary, but hopefully enough
 
 // Entry is the currency of this package.
 type Entry struct {
@@ -22,7 +22,7 @@ type Entry struct {
 // when collecting file info in subdirectories. levelsDeep == 0 will only create an entry for inputPath.
 // Consider the number of files that may be under the root directory and the memory required to represent them
 // when choosing this value.
-func NewEntry(inputPath string, levelsDeep int, filters ...EntriesFilter) (Entry, error) {
+func NewEntry(inputPath string, levelsDeep uint8, filters ...EntriesFilter) (Entry, error) {
 
 	var root, err = newEntry(inputPath)
 	if err != nil {
@@ -84,7 +84,7 @@ func newEntry(inputPath string) (Entry, error) {
 }
 
 // populateChildren recursively populates the children of an Entry.
-func (e *Entry) populateChildren(levels int, filters ...EntriesFilter) error {
+func (e *Entry) populateChildren(levels uint8, filters ...EntriesFilter) error {
 
 	files, err := os.ReadDir(e.AbsolutePath)
 	if err != nil {

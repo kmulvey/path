@@ -5,7 +5,7 @@ import (
 )
 
 // List is just a convience function to get a slice of files
-func List(inputPath string, levelsDeep int, includeRoot bool, filters ...EntriesFilter) ([]Entry, error) {
+func List(inputPath string, levelsDeep uint8, includeRoot bool, filters ...EntriesFilter) ([]Entry, error) {
 
 	var entry, err = NewEntry(inputPath, levelsDeep, filters...)
 	if err != nil {
