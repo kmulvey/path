@@ -24,8 +24,13 @@ jobs:
       - name: Build & Test
         run: |
           go mod tidy
-          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile=coverage.out ./...
           go build -v -ldflags="-s -w" ./...
+          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3  
+        with:
+          verbose: true # optional (default = false)
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
@@ -35,8 +40,3 @@ jobs:
 
       - name: Govulncheck
         uses: kmulvey/govulncheck-action@v1.1.2
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3  
-        with:
-          verbose: true # optional (default = false)
