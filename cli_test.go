@@ -2,11 +2,14 @@ package path
 
 import (
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
+
+var fileNotFoundRegex = regexp.MustCompile(`no such file or directory|The system cannot find the path specified`)
 
 func TestCli(t *testing.T) {
 	t.Parallel()
@@ -16,7 +19,7 @@ func TestCli(t *testing.T) {
 	var err = entry.Set("./testdata/*")
 	assert.NoError(t, err)
 
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	var fileMap = map[string]struct{}{
 		"two": {},
 		"one": {},
@@ -28,21 +31,21 @@ func TestCli(t *testing.T) {
 	assert.Equal(t, 0, len(fileMap))
 
 	var get = entry.Get()
-	AbsoultePathTest(t, get)
-	assert.True(t, strings.HasSuffix(get, "testdata/*"))
+	assert.True(t, prefixRegex.MatchString(get))
+	assert.True(t, globSuffixRegex.MatchString(get))
 
 	var str = entry.String()
 	assert.Equal(t, get, str)
 
 	err = entry.Set("~/testdata/*")
 	assert.True(t, strings.HasPrefix(err.Error(), "error stating file"))
-	assert.True(t, strings.HasSuffix(err.Error(), "no such file or directory"))
+	assert.True(t, fileNotFoundRegex.MatchString(err.Error()))
 
 	assert.Equal(t, "", entry.AbsolutePath)
 	assert.Nil(t, entry.FileInfo)
 
 	err = entry.Set("./testdata/")
 	assert.NoError(t, err)
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.NotNil(t, entry.FileInfo)
 }

@@ -2,20 +2,18 @@ package path
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-// AbsoultePathTest this name seems backeards but needs to be in order to compile
-func AbsoultePathTest(t *testing.T, path string) {
-	assert.True(t, strings.HasPrefix(path, "/") || strings.HasPrefix(path, "D:/"))
-}
+var prefixRegex = regexp.MustCompile(`^\/|^[A-Z]:\\`)
+var globSuffixRegex = regexp.MustCompile(`\/\*$|\\\*$`)
 
 func TestNewEntry(t *testing.T) {
 	t.Parallel()
@@ -23,26 +21,25 @@ func TestNewEntry(t *testing.T) {
 	var entry, err = NewEntry("./testdata/", 0)
 	assert.NoError(t, err)
 
-	fmt.Println("===========", entry.AbsolutePath)
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/*", 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry.AbsolutePath)
-	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
+	assert.True(t, globSuffixRegex.MatchString(entry.AbsolutePath))
 
 	entry, err = NewEntry("./testdata/", 2)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/", 2, NewDirEntitiesFilter())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entry.Children))
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 }
 
@@ -52,14 +49,14 @@ func TestNewEntryPrivate(t *testing.T) {
 	var entry, err = newEntry("./testdata/")
 	assert.NoError(t, err)
 
-	AbsoultePathTest(t, entry.AbsolutePath)
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = newEntry("./testdata/*")
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry.AbsolutePath)
-	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
+	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
+	assert.True(t, globSuffixRegex.MatchString(entry.AbsolutePath))
 }
 
 func TestPopulateChildren(t *testing.T) {
@@ -148,6 +145,6 @@ func TestUnglobInput(t *testing.T) {
 	unglobbedPath, files, err = unglobInput("~/testfile")
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(files))
-	assert.True(t, strings.HasPrefix(unglobbedPath, "/"))
+	assert.True(t, prefixRegex.MatchString(unglobbedPath))
 	assert.True(t, strings.HasSuffix(unglobbedPath, "testfile"))
 }

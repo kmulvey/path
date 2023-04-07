@@ -43,6 +43,6 @@ func TestOnlyNames(t *testing.T) {
 	assert.Equal(t, 8, len(files))
 
 	for _, name := range OnlyNames(files) {
-		assert.True(t, strings.HasPrefix(name, "/"))
+		assert.True(t, prefixRegex.MatchString(name))
 	}
 }
