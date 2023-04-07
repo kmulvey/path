@@ -12,8 +12,8 @@ import (
 )
 
 // AbsoultePathTest this name seems backeards but needs to be in order to compile
-func AbsoultePathTest(t *testing.T, entry Entry) {
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/") || strings.HasPrefix(entry.AbsolutePath, "D:/"))
+func AbsoultePathTest(t *testing.T, path string) {
+	assert.True(t, strings.HasPrefix(path, "/") || strings.HasPrefix(path, "D:/"))
 }
 
 func TestNewEntry(t *testing.T) {
@@ -22,25 +22,25 @@ func TestNewEntry(t *testing.T) {
 	var entry, err = NewEntry("./testdata/", 0)
 	assert.NoError(t, err)
 
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/*", 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
 
 	entry, err = NewEntry("./testdata/", 2)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/", 2, NewDirEntitiesFilter())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entry.Children))
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 }
 
@@ -50,13 +50,13 @@ func TestNewEntryPrivate(t *testing.T) {
 	var entry, err = newEntry("./testdata/")
 	assert.NoError(t, err)
 
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = newEntry("./testdata/*")
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	AbsoultePathTest(t, entry)
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
 }
 

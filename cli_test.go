@@ -16,7 +16,7 @@ func TestCli(t *testing.T) {
 	var err = entry.Set("./testdata/*")
 	assert.NoError(t, err)
 
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	AbsoultePathTest(t, entry.AbsolutePath)
 	var fileMap = map[string]struct{}{
 		"two": {},
 		"one": {},
@@ -28,7 +28,7 @@ func TestCli(t *testing.T) {
 	assert.Equal(t, 0, len(fileMap))
 
 	var get = entry.Get()
-	assert.True(t, strings.HasPrefix(get, "/"))
+	AbsoultePathTest(t, get)
 	assert.True(t, strings.HasSuffix(get, "testdata/*"))
 
 	var str = entry.String()
@@ -43,6 +43,6 @@ func TestCli(t *testing.T) {
 
 	err = entry.Set("./testdata/")
 	assert.NoError(t, err)
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.NotNil(t, entry.FileInfo)
 }
