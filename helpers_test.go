@@ -46,7 +46,3 @@ func TestOnlyNames(t *testing.T) {
 		assert.True(t, strings.HasPrefix(name, "/"))
 	}
 }
-
-func TestAbsoultePath(t *testing.T, entry Entry) {
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/") || strings.HasPrefix(entry.AbsolutePath, "D:/"))
-}
