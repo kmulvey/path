@@ -2,6 +2,7 @@ package path
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -22,6 +23,7 @@ func TestNewEntry(t *testing.T) {
 	var entry, err = NewEntry("./testdata/", 0)
 	assert.NoError(t, err)
 
+	fmt.Println("===========", entry.AbsolutePath)
 	AbsoultePathTest(t, entry.AbsolutePath)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
