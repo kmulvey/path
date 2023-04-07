@@ -17,25 +17,25 @@ func TestNewEntry(t *testing.T) {
 	var entry, err = NewEntry("./testdata/", 0)
 	assert.NoError(t, err)
 
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/*", 1)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
 
 	entry, err = NewEntry("./testdata/", 2)
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/", 2, NewDirEntitiesFilter())
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(entry.Children))
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 }
 
@@ -45,13 +45,13 @@ func TestNewEntryPrivate(t *testing.T) {
 	var entry, err = newEntry("./testdata/")
 	assert.NoError(t, err)
 
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = newEntry("./testdata/*")
 	assert.NoError(t, err)
 	assert.Equal(t, 3, len(entry.Children))
-	assert.True(t, strings.HasPrefix(entry.AbsolutePath, "/"))
+	TestAbsoultePath(t, entry)
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata/*"))
 }
 
