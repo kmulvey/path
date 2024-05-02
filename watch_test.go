@@ -3,8 +3,8 @@ package path
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,9 +24,7 @@ func TestWatchDir(t *testing.T) {
 
 	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(dir, os.ModePerm)
-		if err != nil {
-			log.Println(err)
-		}
+		assert.NoError(t, err)
 	}
 
 	var files = make(chan WatchEvent)
@@ -37,6 +35,7 @@ func TestWatchDir(t *testing.T) {
 	go func() {
 		var i int
 		for file := range files {
+			fmt.Println(file)
 			assert.True(t, strings.HasSuffix(file.AbsolutePath, ".txt"))
 			i++
 		}
