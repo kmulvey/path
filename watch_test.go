@@ -3,7 +3,6 @@ package path
 import (
 	"context"
 	"errors"
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -35,11 +34,10 @@ func TestWatchDir(t *testing.T) {
 	go func() {
 		var i int
 		for file := range files {
-			fmt.Println(file)
 			assert.True(t, strings.HasSuffix(file.AbsolutePath, ".txt"))
 			i++
 		}
-		assert.Equal(t, 2, i)
+		assert.True(t, i >= 2 && i <= 3) // on linux we will get two CREATE events, on OSX we also get a WRITE event.
 		close(done)
 	}()
 	go func() {
