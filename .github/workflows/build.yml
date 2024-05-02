@@ -1,4 +1,4 @@
-name: path
+name: Build
 
 on: push
 
@@ -26,10 +26,10 @@ jobs:
           go clean -r ./...
           go mod tidy
           go build -v -ldflags="-s -w" ./...
-          go test -v -race -count 1 -parallel 5 -covermode=atomic -coverprofile="coverage.out" ./...
+          go test -v -race -count 1 -parallel 50 -covermode=atomic -coverprofile="coverage.out" ./...
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true # optional (default = false)
