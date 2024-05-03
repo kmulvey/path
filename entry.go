@@ -18,7 +18,7 @@ type Entry struct {
 	Children     []Entry
 }
 
-// NewEntry is the public constructor for creating Entry. The levelsDeep param controls the level of recursion
+// NewEntry is the public constructor for creating an Entry. The levelsDeep param controls the level of recursion
 // when collecting file info in subdirectories. levelsDeep == 0 will only create an entry for inputPath.
 // Consider the number of files that may be under the root directory and the memory required to represent them
 // when choosing this value.

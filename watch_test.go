@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"io/fs"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -24,9 +23,7 @@ func TestWatchDir(t *testing.T) {
 
 	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
 		err := os.Mkdir(dir, os.ModePerm)
-		if err != nil {
-			log.Println(err)
-		}
+		assert.NoError(t, err)
 	}
 
 	var files = make(chan WatchEvent)
@@ -40,7 +37,7 @@ func TestWatchDir(t *testing.T) {
 			assert.True(t, strings.HasSuffix(file.AbsolutePath, ".txt"))
 			i++
 		}
-		assert.Equal(t, 2, i)
+		assert.True(t, i >= 2 && i <= 3) // on linux we will get two CREATE events, on OSX we also get a WRITE event.
 		close(done)
 	}()
 	go func() {
