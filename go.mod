@@ -5,7 +5,7 @@ go 1.23.2
 require (
 	github.com/fsnotify/fsnotify v1.8.0
 	github.com/kmulvey/goutils v0.9.0
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	golang.org/x/exp v0.0.0-20241009180824-f66d83c29e7c
 )
 
