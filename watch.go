@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"slices"
+
 	"github.com/fsnotify/fsnotify"
-	"golang.org/x/exp/slices"
 )
 
 // WatchEvent is a wrapper for Entry and fsnotify.Op.
@@ -20,6 +21,7 @@ type WatchEvent struct {
 }
 
 // WatchDir will watch a directory indefinitely for changes and publish them on the given files channel with optional filters.
+// nolint: gocognit, funlen
 func WatchDir(ctx context.Context, inputPath string, recursiveDepth uint8, includeRoot bool, files chan WatchEvent, errors chan error, filters ...WatchFilter) {
 
 	inputPath = filepath.Clean(strings.TrimSpace(inputPath))
@@ -83,7 +85,7 @@ func WatchDir(ctx context.Context, inputPath string, recursiveDepth uint8, inclu
 
 	var entries []Entry
 	if recursiveDepth > 0 {
-		var rootEntry, err = NewEntry(inputPath, MaxDepth, NewDirEntitiesFilter())
+		var rootEntry, err = NewEntry(inputPath, 255, NewDirEntitiesFilter())
 		if err != nil {
 			errors <- fmt.Errorf("error adding path to watcher: %w", err)
 			return
@@ -116,7 +118,7 @@ func WatchDir(ctx context.Context, inputPath string, recursiveDepth uint8, inclu
 
 // WatchFilter interface facilitates filtering of file events.
 type WatchFilter interface {
-	filter(fsnotify.Event) (bool, error)
+	filter(e fsnotify.Event) (bool, error)
 }
 
 // RegexWatchFilter filters fs events by matching file names to a given regex.
@@ -181,8 +183,8 @@ type PermissionsWatchFilter struct {
 	max uint32
 }
 
-func NewPermissionsWatchFilter(min, max uint32) PermissionsWatchFilter {
-	return PermissionsWatchFilter{min: min, max: max}
+func NewPermissionsWatchFilter(minimum, maximum uint32) PermissionsWatchFilter {
+	return PermissionsWatchFilter{min: minimum, max: maximum}
 }
 
 func (pf PermissionsWatchFilter) filter(event fsnotify.Event) (bool, error) {
@@ -204,8 +206,8 @@ type SizeWatchFilter struct {
 	max int64
 }
 
-func NewSizeWatchFilter(min, max int64) SizeWatchFilter {
-	return SizeWatchFilter{min: min, max: max}
+func NewSizeWatchFilter(minimum, maximum int64) SizeWatchFilter {
+	return SizeWatchFilter{min: minimum, max: maximum}
 }
 
 func (pf SizeWatchFilter) filter(event fsnotify.Event) (bool, error) {
@@ -231,6 +233,7 @@ func NewOpWatchFilter(ops ...fsnotify.Op) OpWatchFilter {
 	return OpWatchFilter{Ops: ops}
 }
 
+// nolint: unparam
 func (of OpWatchFilter) filter(event fsnotify.Event) (bool, error) {
 	if slices.Contains(of.Ops, event.Op) {
 		return true, nil
@@ -245,6 +248,7 @@ func NewDirWatchFilter() DirWatchFilter {
 	return DirWatchFilter{}
 }
 
+// nolint: unparam
 func (df DirWatchFilter) filter(entry Entry) (bool, error) {
 	if entry.FileInfo.IsDir() {
 		return true, nil
@@ -259,6 +263,7 @@ func NewFileWatchFilter() FileWatchFilter {
 	return FileWatchFilter{}
 }
 
+// nolint: unparam
 func (ff FileWatchFilter) filter(entry Entry) (bool, error) {
 	if entry.FileInfo.IsDir() {
 		return false, nil

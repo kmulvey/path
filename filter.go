@@ -23,7 +23,7 @@ func FilterEntities(files []Entry, filters ...EntriesFilter) []Entry {
 
 // EntitiesFilter interface facilitates filtering entry slices.
 type EntriesFilter interface {
-	filter(Entry) bool
+	filter(e Entry) bool
 }
 
 // RegexEntitiesFilter filters fs events by matching file names to a given regex.
@@ -78,8 +78,8 @@ type PermissionsEntitiesFilter struct {
 	max uint32
 }
 
-func NewPermissionsEntitiesFilter(min, max uint32) PermissionsEntitiesFilter {
-	return PermissionsEntitiesFilter{min: min, max: max}
+func NewPermissionsEntitiesFilter(minimum, maximum uint32) PermissionsEntitiesFilter {
+	return PermissionsEntitiesFilter{min: minimum, max: maximum}
 }
 
 func (pf PermissionsEntitiesFilter) filter(e Entry) bool {
@@ -95,8 +95,8 @@ type SizeEntitiesFilter struct {
 	max int64
 }
 
-func NewSizeEntitiesFilter(min, max int64) SizeEntitiesFilter {
-	return SizeEntitiesFilter{min: min, max: max}
+func NewSizeEntitiesFilter(minimum, maximum int64) SizeEntitiesFilter {
+	return SizeEntitiesFilter{min: minimum, max: maximum}
 }
 
 func (pf SizeEntitiesFilter) filter(e Entry) bool {

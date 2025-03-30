@@ -26,19 +26,19 @@ func TestNewEntry(t *testing.T) {
 
 	entry, err = NewEntry("./testdata/*", 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(entry.Children))
+	assert.Len(t, entry.Children, 3)
 	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, globSuffixRegex.MatchString(entry.AbsolutePath))
 
 	entry, err = NewEntry("./testdata/", 2)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(entry.Children))
+	assert.Len(t, entry.Children, 3)
 	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 
 	entry, err = NewEntry("./testdata/", 2, NewDirEntitiesFilter())
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(entry.Children))
+	assert.Len(t, entry.Children, 2)
 	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, strings.HasSuffix(entry.AbsolutePath, "testdata"))
 }
@@ -54,7 +54,7 @@ func TestNewEntryPrivate(t *testing.T) {
 
 	entry, err = newEntry("./testdata/*")
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(entry.Children))
+	assert.Len(t, entry.Children, 3)
 	assert.True(t, prefixRegex.MatchString(entry.AbsolutePath))
 	assert.True(t, globSuffixRegex.MatchString(entry.AbsolutePath))
 }
@@ -67,7 +67,7 @@ func TestPopulateChildren(t *testing.T) {
 
 	entry = Entry{AbsolutePath: "./testdata"}
 	assert.NoError(t, entry.populateChildren(1))
-	assert.Equal(t, 3, len(entry.Children))
+	assert.Len(t, entry.Children, 3)
 
 	entry = Entry{AbsolutePath: "./testdata"}
 	stat, err := os.Lstat("./testdata")
@@ -75,7 +75,7 @@ func TestPopulateChildren(t *testing.T) {
 	entry.FileInfo = stat
 
 	assert.NoError(t, entry.populateChildren(1, NewDirEntitiesFilter()))
-	assert.Equal(t, 2, len(entry.Children))
+	assert.Len(t, entry.Children, 2)
 }
 
 func TestCollectChildren(t *testing.T) {
@@ -83,11 +83,11 @@ func TestCollectChildren(t *testing.T) {
 
 	var entry, err = NewEntry("./testdata/", 1)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(entry.Children))
+	assert.Len(t, entry.Children, 3)
 
 	files, err := entry.Flatten(false)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(files))
+	assert.Len(t, files, 3)
 }
 
 func TestString(t *testing.T) {
@@ -116,18 +116,18 @@ func TestUnglobInput(t *testing.T) {
 
 	var unglobbedPath, files, err = unglobInput("./testdata/*")
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(files))
+	assert.Len(t, files, 3)
 	assert.Equal(t, "./testdata/*", unglobbedPath)
 
 	unglobbedPath, files, err = unglobInput("a/b[")
-	assert.Equal(t, "syntax error in pattern", err.Error())
-	assert.Equal(t, 0, len(files))
-	assert.Equal(t, "a/b[", unglobbedPath) // no such path exists
+	assert.Equal(t, "failed to glob input path a/b[: syntax error in pattern", err.Error())
+	assert.Empty(t, files)
+	assert.Empty(t, unglobbedPath) // no such path exists
 
 	// test a crazy filename
 	unglobbedPath, files, err = unglobInput("./testdata/ogCGs91VSA5FBjJdgE8eeLSngbebPXyDCICZ7I~tplv-f5insbecw7-1 720 720.jpg")
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(files))
+	assert.Len(t, files, 1)
 	assert.Equal(t, "./testdata/ogCGs91VSA5FBjJdgE8eeLSngbebPXyDCICZ7I~tplv-f5insbecw7-1 720 720.jpg", unglobbedPath)
 
 	// test ~
@@ -144,7 +144,7 @@ func TestUnglobInput(t *testing.T) {
 
 	unglobbedPath, files, err = unglobInput("~/testfile")
 	assert.NoError(t, err)
-	assert.Equal(t, 1, len(files))
+	assert.Len(t, files, 1)
 	assert.True(t, prefixRegex.MatchString(unglobbedPath))
 	assert.True(t, strings.HasSuffix(unglobbedPath, "testfile"))
 }

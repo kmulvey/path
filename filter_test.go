@@ -19,7 +19,7 @@ func TestFilterEntities(t *testing.T) {
 	assert.NoError(t, err)
 
 	files, err := entry.Flatten(false)
-	assert.Equal(t, 8, len(files))
+	assert.Len(t, files, 8)
 
 	var skipMap = make(map[string]struct{})
 
@@ -33,7 +33,7 @@ func TestFilterEntities(t *testing.T) {
 
 	files = FilterEntities(files, skipMapFilter)
 	assert.NoError(t, err)
-	assert.Equal(t, 6, len(files))
+	assert.Len(t, files, 6)
 
 	var suffixRegex = regexp.MustCompile(".*.mp3$|.*.mp4$")
 	for _, str := range files {

@@ -28,7 +28,7 @@ func TestCli(t *testing.T) {
 	for _, child := range entry.Children {
 		delete(fileMap, filepath.Base(child.AbsolutePath))
 	}
-	assert.Equal(t, 0, len(fileMap))
+	assert.Empty(t, fileMap)
 
 	var get = entry.Get()
 	assert.True(t, prefixRegex.MatchString(get))

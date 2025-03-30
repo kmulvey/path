@@ -28,7 +28,7 @@ func TestWatchDir(t *testing.T) {
 
 	var files = make(chan WatchEvent)
 	var done = make(chan struct{})
-	var ctx, cancel = context.WithCancel(context.Background())
+	var ctx, cancel = context.WithCancel(t.Context())
 	var regexFilter = NewRegexWatchFilter(regexp.MustCompile(".*.txt$"))
 
 	go func() {
@@ -80,7 +80,7 @@ func TestWatchDirRecursive(t *testing.T) {
 
 	var files = make(chan WatchEvent)
 	var done = make(chan struct{})
-	var ctx, cancel = context.WithCancel(context.Background())
+	var ctx, cancel = context.WithCancel(t.Context())
 	var regexFilter = NewRegexWatchFilter(regexp.MustCompile(".*.txt$"))
 
 	go func() {

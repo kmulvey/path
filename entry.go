@@ -9,8 +9,6 @@ import (
 	"strings"
 )
 
-var MaxDepth uint8 = 255 // arbitrary, but hopefully enough
-
 // Entry is the currency of this package.
 type Entry struct {
 	FileInfo     fs.FileInfo
@@ -54,7 +52,7 @@ func newEntry(inputPath string) (Entry, error) {
 
 	entry.AbsolutePath, err = filepath.Abs(inputPath)
 	if err != nil {
-		return Entry{}, fmt.Errorf("error getting absolute path, error: %s", err.Error())
+		return Entry{}, fmt.Errorf("error getting absolute path, error: %w", err)
 	}
 
 	if len(unglobbedFilenames) <= 1 {
@@ -85,17 +83,15 @@ func newEntry(inputPath string) (Entry, error) {
 
 // populateChildren recursively populates the children of an Entry.
 func (e *Entry) populateChildren(levels uint8, filters ...EntriesFilter) error {
-
 	files, err := os.ReadDir(e.AbsolutePath)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to read directory %s: %w", e.AbsolutePath, err)
 	}
 
 	var children []Entry
 
 FileLoop:
 	for _, file := range files {
-
 		var entry, err = newEntry(filepath.Join(e.AbsolutePath, file.Name()))
 		if err != nil {
 			return err
@@ -177,7 +173,6 @@ func collectChildern(entry Entry) ([]Entry, error) {
 
 // unglobInput expands ~, and un-globs input.
 func unglobInput(inputPath string) (string, []string, error) {
-
 	// expand ~ paths
 	if strings.HasPrefix(inputPath, "~") {
 		user, err := user.Current()
@@ -187,7 +182,10 @@ func unglobInput(inputPath string) (string, []string, error) {
 		inputPath = filepath.Join(user.HomeDir, strings.ReplaceAll(inputPath, "~", ""))
 	}
 
-	// try un-globing the input
+	// try un-globbing the input
 	globs, err := filepath.Glob(inputPath)
-	return inputPath, globs, err
+	if err != nil {
+		return "", nil, fmt.Errorf("failed to glob input path %s: %w", inputPath, err)
+	}
+	return inputPath, globs, nil
 }
