@@ -41,7 +41,7 @@ func TestCli(t *testing.T) {
 	assert.True(t, strings.HasPrefix(err.Error(), "error stating file"))
 	assert.True(t, fileNotFoundRegex.MatchString(err.Error()))
 
-	assert.Equal(t, "", entry.AbsolutePath)
+	assert.Empty(t, entry.AbsolutePath)
 	assert.Nil(t, entry.FileInfo)
 
 	err = entry.Set("./testdata/")

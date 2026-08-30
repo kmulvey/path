@@ -3,6 +3,7 @@ package path
 import (
 	"io/fs"
 	"regexp"
+	"slices"
 	"time"
 
 	"github.com/kmulvey/goutils"
@@ -12,7 +13,7 @@ import (
 func FilterEntities(files []Entry, filters ...EntriesFilter) []Entry {
 
 	for _, fn := range filters {
-		for i := len(files) - 1; i >= 0; i-- {
+		for i := range slices.Backward(files) {
 			if !fn.filter(files[i]) {
 				files = goutils.RemoveElementFromArray(files, i)
 			}
@@ -21,7 +22,7 @@ func FilterEntities(files []Entry, filters ...EntriesFilter) []Entry {
 	return files
 }
 
-// EntitiesFilter interface facilitates filtering entry slices.
+// EntriesFilter interface facilitates filtering entry slices.
 type EntriesFilter interface {
 	filter(e Entry) bool
 }

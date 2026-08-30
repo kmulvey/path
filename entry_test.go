@@ -137,7 +137,7 @@ func TestUnglobInput(t *testing.T) {
 	defer assert.NoError(t, os.RemoveAll(testFile))
 
 	if _, err := os.Lstat(testFile); errors.Is(err, os.ErrNotExist) {
-		f, createErr := os.Create(testFile)
+		f, createErr := os.Create(testFile) // #nosec G304 -- test only, path comes from user.Current().HomeDir
 		assert.NoError(t, createErr)
 		assert.NoError(t, f.Close())
 	}

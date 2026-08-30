@@ -41,7 +41,11 @@ func WatchDir(ctx context.Context, inputPath string, recursiveDepth uint8, inclu
 		errors <- fmt.Errorf("error creating NewWatcher: %w", err)
 		return
 	}
-	defer watcher.Close()
+	defer func() {
+		if err := watcher.Close(); err != nil {
+			errors <- fmt.Errorf("error closing watcher: %w", err)
+		}
+	}()
 
 	// Start listening for events.
 	var wait = make(chan struct{})

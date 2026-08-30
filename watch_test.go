@@ -16,13 +16,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const fileNotExists = "filenotexists"
+
 func TestWatchDir(t *testing.T) {
 	t.Parallel()
 
 	var dir = "./testwatchdir"
 
 	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
-		err := os.Mkdir(dir, os.ModePerm)
+		err := os.Mkdir(dir, 0o750)
 		assert.NoError(t, err)
 	}
 
@@ -70,10 +72,10 @@ func TestWatchDirRecursive(t *testing.T) {
 	var dir = "./testwatchdirrecursive"
 
 	if _, err := os.Lstat(dir); errors.Is(err, os.ErrNotExist) {
-		err := os.MkdirAll(filepath.Join(dir, "one"), os.ModePerm)
+		err := os.MkdirAll(filepath.Join(dir, "one"), 0o750)
 		assert.NoError(t, err)
 
-		err = os.MkdirAll(filepath.Join(dir, "two"), os.ModePerm)
+		err = os.MkdirAll(filepath.Join(dir, "two"), 0o750)
 		assert.NoError(t, err)
 
 	}
@@ -139,7 +141,7 @@ func TestSkipMapWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 
-	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	accpet, err = skipMapFilter.filter(fsnotify.Event{Name: fileNotExists})
 	assert.Error(t, err)
 	assert.False(t, accpet)
 }
@@ -168,7 +170,7 @@ func TestDateWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 
-	accpet, err = dateFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	accpet, err = dateFilter.filter(fsnotify.Event{Name: fileNotExists})
 	assert.Error(t, err)
 	assert.False(t, accpet)
 }
@@ -222,7 +224,7 @@ func TestSizeWatchFilter(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, accpet)
 
-	accpet, err = sizeFilter.filter(fsnotify.Event{Name: "filenotexists"})
+	accpet, err = sizeFilter.filter(fsnotify.Event{Name: fileNotExists})
 	assert.Error(t, err)
 	assert.False(t, accpet)
 }

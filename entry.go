@@ -81,6 +81,29 @@ func newEntry(inputPath string) (Entry, error) {
 	return entry, nil
 }
 
+// String fulfils the flag.Value interface https://pkg.go.dev/flag#Value.
+func (e *Entry) String() string {
+	return e.AbsolutePath
+}
+
+func (e *Entry) IsDir() bool {
+	return e.FileInfo.IsDir()
+}
+
+// Flatten recursively lists all files with optional filters. If includeRoot is true the root directory "inputPath" is included in the results.
+func (e *Entry) Flatten(includeRoot bool) ([]Entry, error) {
+	var arr, err = collectChildern(*e)
+	if err != nil {
+		return nil, err
+	}
+
+	if includeRoot {
+		return append(arr, *e), nil
+	}
+
+	return arr, nil
+}
+
 // populateChildren recursively populates the children of an Entry.
 func (e *Entry) populateChildren(levels uint8, filters ...EntriesFilter) error {
 	files, err := os.ReadDir(e.AbsolutePath)
@@ -126,29 +149,6 @@ FileLoop:
 	}
 
 	return nil
-}
-
-// String fulfils the flag.Value interface https://pkg.go.dev/flag#Value.
-func (e *Entry) String() string {
-	return e.AbsolutePath
-}
-
-func (e *Entry) IsDir() bool {
-	return e.FileInfo.IsDir()
-}
-
-// List recursively lists all files with optional filters. If includeRoot is true the root directory "inputPath" is included in the results.
-func (e *Entry) Flatten(includeRoot bool) ([]Entry, error) {
-	var arr, err = collectChildern(*e)
-	if err != nil {
-		return nil, err
-	}
-
-	if includeRoot {
-		return append(arr, *e), nil
-	}
-
-	return arr, nil
 }
 
 func collectChildern(entry Entry) ([]Entry, error) {
