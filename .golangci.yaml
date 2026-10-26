@@ -8,8 +8,7 @@ run:
   timeout: 10m
   tests: true
   modules-download-mode: readonly
-  go: "1.24"
-
+  go: "1.26"
 linters:
   default: all
   disable:
@@ -52,4 +51,3 @@ linters:
     promlinter:
       disabled-linters:
         - "MetricUnits"
-
